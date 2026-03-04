@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 2560 1440" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1.94371,0,0,1.94371,-883.835351,-1983.856962)">
+        <g transform="matrix(1.373873,0,0,1.373873,-2828.988398,-855.727818)">
+            <g transform="matrix(42.732125,0,0,42.732125,2999.16827,1732.872053)">
+            </g>
+            <text x="2740.895px" y="1732.872px" style="font-family:'RedHatText-Medium', 'Red Hat Text';font-weight:500;font-size:42.732px;fill:rgb(45,42,41);">S<tspan x="2787.089px 2833.197px 2883.236px 2933.916px 2964.513px " y="1732.872px 1732.872px 1732.872px 1732.872px 1732.872px ">TUDIO</tspan></text>
+        </g>
+        <g transform="matrix(1,0,0,1,-1049.031596,-361.013576)">
+            <g transform="matrix(1.083886,0,0,1.796153,355.41784,-1191.054368)">
+                <path d="M1276.031,1672.291L1276.031,1563.655L1305.237,1563.655L1305.237,1612.795L1399.382,1612.795L1399.382,1563.655L1428.588,1563.655L1428.588,1672.291L1399.382,1672.291L1399.382,1630.419L1305.237,1630.419L1305.237,1672.291L1276.031,1672.291Z" style="fill:rgb(45,42,41);"/>
+            </g>
+            <path d="M1932.826,1812.635L2032.248,1617.509L2131.669,1812.635L2096.141,1812.635L2032.248,1687.237L1968.354,1812.635L1932.826,1812.635Z" style="fill:rgb(45,42,41);"/>
+            <g transform="matrix(1,0,0,1,454.403878,0)">
+                <path d="M1932.826,1812.635L2032.248,1617.509L2131.669,1812.635L2096.141,1812.635L2032.248,1687.237L1968.354,1812.635L1932.826,1812.635Z" style="fill:rgb(45,42,41);"/>
+            </g>
+            <g transform="matrix(-1,0,0,-1,4227.76285,3430.144561)">
+                <path d="M1932.826,1812.635L2032.248,1617.509L2131.669,1812.635L2096.141,1812.635L2032.248,1687.237L1968.354,1812.635L1932.826,1812.635Z" style="fill:rgb(198,156,61);"/>
+            </g>
+            <g transform="matrix(0.643607,0,0,1.871712,1110.121644,-1163.281458)">
+                <rect x="1881.068" y="1485.694" width="49.185" height="104.25" style="fill:rgb(45,42,41);"/>
+            </g>
+        </g>
+    </g>
+</svg>

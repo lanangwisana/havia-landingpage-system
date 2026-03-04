@@ -1,26 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --havia-gold: #C69C3D;
+  --havia-charcoal: #2C2A29;
+  --havia-cream: #F4EBD4;
+  --havia-offwhite: #F2F1F0;
+  --havia-white: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer utilities {
+  .bg-havia-gold { background-color: var(--havia-gold); }
+  .bg-havia-charcoal { background-color: var(--havia-charcoal); }
+  .bg-havia-cream { background-color: var(--havia-cream); }
+  .bg-havia-offwhite { background-color: var(--havia-offwhite); }
+  .bg-havia-white { background-color: var(--havia-white); }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  .text-havia-gold { color: var(--havia-gold); }
+  .text-havia-charcoal { color: var(--havia-charcoal); }
+  .text-havia-white { color: var(--havia-white); }
+
+  .border-havia-gold { border-color: var(--havia-gold); }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--havia-offwhite);
+  color: var(--havia-charcoal);
+  font-family: "Work Sans", sans-serif, Helvetica, 'Open Sans';
+}
+
+html {
+  scroll-behavior: smooth;
 }
