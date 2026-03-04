@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { Instagram, Linkedin, MapPin, Phone, Mail } from "lucide-react";
 
-export default function Footer() {
+export default function Contact() {
   return (
-    <footer className="bg-black text-white pt-20 pb-10">
+    <section id="contact" className="bg-black text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-8">
 
         {/* Top Grid */}
@@ -105,6 +105,6 @@ export default function Footer() {
         </div>
 
       </div>
-    </footer>
+    </section>
   );
 }
