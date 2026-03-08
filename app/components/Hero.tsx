@@ -23,7 +23,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-end pb-28 md:pb-36 lg:pb-44 overflow-hidden"
+      className="relative min-h-[85vh] md:min-h-[100vh] flex items-center overflow-hidden"
     >
       {/* Background */}
       {images.map((src, index) => (
@@ -42,7 +42,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 lg:px-12 text-havia-white overflow-hidden">
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 lg:px-12 pt-32 md:pt-40 pb-20 text-havia-white">
         <div className="max-w-xl">
           {/* Small label */}
           <div className="flex items-center gap-4 mb-6">
@@ -58,12 +58,17 @@ export default function Hero() {
           </h1>
 
           <h1 className="font-[Helvetica] italic text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-300">
-            Facing the Future,
+            Facing the Future.
+          </h1>
+
+          <h1 className="font-[Helvetica] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight md:whitespace-nowrap">
+            Designing a Good Life.
           </h1>
 
           {/* Paragraph */}
           <p className="mt-6 md:mt-8 text-sm md:text-base text-neutral-200 leading-relaxed max-w-lg">
-            Havia Studio berkomitmen penuh membantu, melayani, dan mewujudkan desain sesuai kebutuhan dan harapan.
+            Havia Studio berkomitmen penuh membantu, melayani, dan mewujudkan
+            desain sesuai kebutuhan dan harapan.
           </p>
 
           {/* Buttons */}

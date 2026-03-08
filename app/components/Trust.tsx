@@ -44,7 +44,10 @@ export default function Trust() {
     "/logo-client-9.png",
     "/logo-client-10.png",
     "/logo-client-11.png",
-    "/logo-client-12.png"
+    "/logo-client-12.png",
+    "/logo-client-11.png",
+    "/logo-client-12.png",
+    "/logo-client-12.png",
   ];
 
   const [page, setPage] = useState(1);
@@ -95,7 +98,7 @@ export default function Trust() {
             >
               {/* Image */}
               <div className={`${index % 2 !== 0 ? "md:order-2" : ""}`}>
-                <div className="relative h-[260px] md:h-[420px] w-full overflow-hidden">
+                <div className="relative h-[260px] md:h-[420px] w-full overflow-hidden rounded-xl">
                   <Image
                     src={item.image}
                     alt={item.name}
@@ -167,7 +170,7 @@ export default function Trust() {
             <div className="flex justify-center items-center gap-6 mt-8">
               <button
                 onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-havia-gold transition"
+                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -178,7 +181,7 @@ export default function Trust() {
 
               <button
                 onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-havia-gold transition"
+                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
               >
                 <ChevronRight size={16} />
               </button>
