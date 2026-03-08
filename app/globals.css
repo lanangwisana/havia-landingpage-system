@@ -20,6 +20,7 @@
   .text-havia-white { color: var(--havia-white); }
 
   .border-havia-gold { border-color: var(--havia-gold); }
+  .border-havia-charcoal { border-color: var(--havia-charcoal); }
 }
 
 body {

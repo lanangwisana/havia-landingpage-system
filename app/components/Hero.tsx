@@ -23,7 +23,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-end pb-28 md:pb-36 lg:pb-44 overflow-hidden"
+      className="relative min-h-[85vh] md:min-h-[100vh] flex items-center overflow-hidden"
     >
       {/* Background */}
       {images.map((src, index) => (
@@ -42,36 +42,40 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 lg:px-12 text-havia-white overflow-hidden">
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 lg:px-12 pt-32 md:pt-40 pb-20 text-havia-white">
         <div className="max-w-xl">
           {/* Small label */}
           <div className="flex items-center gap-4 mb-6">
             <div className="h-[1px] w-10 bg-havia-gold" />
             <span className="text-[10px] md:text-xs tracking-[0.35em] md:tracking-[0.4em] text-havia-gold uppercase">
-              Architecture & Build Studio, Bandung
+              Architecture Studio, Indonesia
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="font-[Helvetica] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">
-            Designing Space.
+            Creating Space.
           </h1>
 
           <h1 className="font-[Helvetica] italic text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-300">
-            Building Legacy.
+            Facing the Future.
+          </h1>
+
+          <h1 className="font-[Helvetica] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight md:whitespace-nowrap">
+            Designing a Good Life.
           </h1>
 
           {/* Paragraph */}
           <p className="mt-6 md:mt-8 text-sm md:text-base text-neutral-200 leading-relaxed max-w-lg">
-            We craft refined architectural concepts and execute them with
-            precision—bringing residential and commercial visions to life.
+            Havia Studio berkomitmen penuh membantu, melayani, dan mewujudkan
+            desain sesuai kebutuhan dan harapan.
           </p>
 
           {/* Buttons */}
           <div className="mt-8 md:mt-10 flex items-center gap-6 md:gap-10 flex-wrap">
             <a
               href="#contact"
-              className="px-5 md:px-6 py-3 bg-havia-gold text-black text-[10px] md:text-xs uppercase tracking-widest hover:opacity-90 transition"
+              className="px-5 md:px-6 py-3 bg-havia-gold text-havia-charcoal text-[10px] md:text-xs uppercase tracking-widest hover:opacity-90 transition"
             >
               Contact Us
             </a>

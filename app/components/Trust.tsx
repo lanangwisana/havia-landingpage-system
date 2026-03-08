@@ -45,6 +45,9 @@ export default function Trust() {
     "/logo-client-10.png",
     "/logo-client-11.png",
     "/logo-client-12.png",
+    "/logo-client-11.png",
+    "/logo-client-12.png",
+    "/logo-client-12.png",
   ];
 
   const [page, setPage] = useState(1);
@@ -70,7 +73,7 @@ export default function Trust() {
   const visibleClients = clients.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <section id="trust" className="py-20 bg-havia-offwhite">
+    <section id="trust" className="py-24 bg-havia-offwhite">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         {/* Heading */}
         <div className="mb-14">
@@ -95,7 +98,7 @@ export default function Trust() {
             >
               {/* Image */}
               <div className={`${index % 2 !== 0 ? "md:order-2" : ""}`}>
-                <div className="relative h-[260px] md:h-[420px] w-full overflow-hidden">
+                <div className="relative h-[260px] md:h-[420px] w-full overflow-hidden rounded-xl">
                   <Image
                     src={item.image}
                     alt={item.name}
@@ -127,7 +130,7 @@ export default function Trust() {
         {/* CLIENTS */}
         <div className="border-t pt-16">
           {/* HEADING */}
-          <div className="relative mb-14 flex items-center">
+          <div className="relative mb-10 flex items-center">
             {/* GOLD BLOCK */}
             <div className="w-6 md:w-10 h-16 md:h-20 bg-havia-gold mr-6" />
 
@@ -136,21 +139,21 @@ export default function Trust() {
               <h3 className="text-xl md:text-2xl font-[Helvetica] text-havia-charcoal mb-2">
                 Our Clients
               </h3>
-
-              <div className="h-[1px] bg-havia-charcoal/30 w-full" />
             </div>
           </div>
 
           {/* LOGO GRID */}
-          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-8 items-center opacity-70">
+          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6 items-center">
             {visibleClients.map((logo, i) => (
               <div key={i} className="flex justify-center">
-                <Image
-                  src={logo}
-                  alt="Client Logo"
-                  width={110}
-                  height={40}
-                />
+                <div className="relative w-full h-[80px] md:h-[90px] border border-[rgba(44,42,41,0.3)] rounded-xl flex items-center justify-center bg-havia-offwhite">
+                  <Image
+                    src={logo}
+                    alt="Client Logo"
+                    fill
+                    className="object-contain p-4"
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -167,7 +170,7 @@ export default function Trust() {
             <div className="flex justify-center items-center gap-6 mt-8">
               <button
                 onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-havia-gold transition"
+                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -178,7 +181,7 @@ export default function Trust() {
 
               <button
                 onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-havia-gold transition"
+                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
               >
                 <ChevronRight size={16} />
               </button>

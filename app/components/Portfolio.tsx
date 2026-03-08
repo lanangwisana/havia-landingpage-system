@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Project = {
   id: number;
@@ -25,37 +25,57 @@ export default function Portfolio() {
 
   const portfolioRef = useRef<HTMLElement | null>(null);
 
+  const nextImage = () => {
+    if (!selectedProject) return;
+
+    setActiveImage((prev) =>
+      prev === selectedProject.images.length - 1 ? 0 : prev + 1,
+    );
+  };
+
+  const prevImage = () => {
+    if (!selectedProject) return;
+
+    setActiveImage((prev) =>
+      prev === 0 ? selectedProject.images.length - 1 : prev - 1,
+    );
+  };
+
   const itemsPerPage = 6;
 
   const projects: Project[] = [
     {
       id: 1,
       title: "Modern House",
-      category: "Residential",
-      image: "/havia-project-1.jpg",
+      category: "Private",
+      image: "/havia-project-5.jpg",
       location: "Dago, Bandung",
       year: "2023",
       client: "John Doe",
       scope: ["Architecture", "Interior", "Landscape"],
       story: "A contemporary residence blending indoor and outdoor living.",
       images: [
-        "/havia-project-1.jpg",
+        "/havia-project-5.jpg",
         "/havia-project-2.jpg",
         "/havia-project-3.jpg",
+        "/havia-project-4.jpg",
+        "/havia-project-1.jpg",
+        "/havia-project-3.jpg",
+        "/havia-project-6.jpg",
       ],
     },
     {
       id: 2,
       title: "City Clinic",
-      category: "Healthcare",
-      image: "/havia-project-2.jpg",
+      category: "Public",
+      image: "/havia-project-4.jpg",
       location: "Jakarta",
       year: "2022",
       client: "PT Medika Sehat",
       scope: ["Architecture", "Interior"],
       story: "Designed to create a calm healing environment.",
       images: [
-        "/havia-project-2.jpg",
+        "/havia-project-4.jpg",
         "/havia-project-1.jpg",
         "/havia-project-3.jpg",
       ],
@@ -63,7 +83,7 @@ export default function Portfolio() {
     {
       id: 3,
       title: "Tropical Villa",
-      category: "Residential",
+      category: "Private",
       image: "/havia-project-3.jpg",
       location: "Bali",
       year: "2024",
@@ -79,43 +99,43 @@ export default function Portfolio() {
     {
       id: 4,
       title: "Private Residence",
-      category: "Residential",
-      image: "/havia-project-1.jpg",
+      category: "Private",
+      image: "/havia-project-2.jpg",
       location: "Bandung",
       year: "2023",
       client: "Michael Lee",
       scope: ["Architecture", "Interior"],
       story: "A modern home prioritizing comfort.",
-      images: ["/havia-project-1.jpg", "/havia-project-2.jpg"],
+      images: ["/havia-project-2.jpg", "/havia-project-2.jpg"],
     },
     {
       id: 5,
       title: "Dental Center",
-      category: "Healthcare",
-      image: "/havia-project-2.jpg",
+      category: "Public",
+      image: "/havia-project-1.jpg",
       location: "Jakarta",
       year: "2022",
       client: "Smile Dental Clinic",
       scope: ["Architecture", "Interior"],
       story: "Clean and welcoming healthcare space.",
-      images: ["/havia-project-2.jpg", "/havia-project-3.jpg"],
+      images: ["/havia-project-1.jpg", "/havia-project-3.jpg"],
     },
     {
       id: 6,
       title: "Urban Retreat",
-      category: "Commercial",
-      image: "/havia-project-3.jpg",
-      location: "Lembang",
+      category: "Public",
+      image: "/havia-project-4.jpg",
+      location: "Lembang, Bandung",
       year: "2024",
       client: "CityLife Co.",
       scope: ["Architecture", "Interior", "Landscape"],
       story: "A peaceful oasis within urban environment.",
-      images: ["/havia-project-3.jpg", "/havia-project-1.jpg"],
+      images: ["/havia-project-4.jpg", "/havia-project-1.jpg"],
     },
     {
       id: 7,
       title: "Co-working Space",
-      category: "Commercial",
+      category: "Public",
       image: "/havia-project-1.jpg",
       location: "Bandung",
       year: "2024",
@@ -124,9 +144,20 @@ export default function Portfolio() {
       story: "Workspace designed for collaboration and productivity.",
       images: ["/havia-project-1.jpg", "/havia-project-2.jpg"],
     },
+    {
+      id: 8,
+      title: "Green Ecotourism",
+      category: "Masterplan",
+      image: "/havia-project-6.jpg",
+      location: "Padang Pariaman",
+      year: "2024",
+      client: "Collab Workspaces",
+      scope: ["Architecture"],
+      images: ["/havia-project-6.jpg", "/havia-project-2.jpg"],
+    },
   ];
 
-  const categories = ["All", "Residential", "Healthcare", "Commercial"];
+  const categories = ["All", "Private", "Public", "Masterplan"];
 
   const filtered =
     activeCategory === "All"
@@ -139,6 +170,34 @@ export default function Portfolio() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
+  const getPagination = () => {
+    const pages: (number | string)[] = [];
+
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    pages.push(1);
+
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+
+    pages.push(totalPages);
+
+    return pages;
+  };
 
   return (
     <section id="portfolio" ref={portfolioRef} className="py-24 bg-havia-white">
@@ -160,9 +219,9 @@ export default function Portfolio() {
 
           {/* Tombol Download PDF */}
           <a
-            href="/portfolio.pdf"
+            href="/havia-portofolio.pdf"
             download
-            className="text-[10px] md:text-xs uppercase tracking-[0.15em] text-white bg-havia-gold px-3 py-1.5 md:px-5 md:py-2 rounded hover:bg-yellow-600 transition whitespace-nowrap"
+            className="text-[10px] md:text-xs uppercase tracking-[0.15em] text-white bg-havia-gold px-3 py-1.5 md:px-5 md:py-2 rounded-full hover:opacity-90 transition whitespace-nowrap"
           >
             Download Portfolio
           </a>
@@ -193,7 +252,10 @@ export default function Portfolio() {
           {paginatedProjects.map((project) => (
             <div
               key={project.id}
-              onClick={() => setSelectedProject(project)}
+              onClick={() => {
+                setSelectedProject(project);
+                setActiveImage(0);
+              }}
               className="group cursor-pointer"
             >
               <div className="relative h-80 overflow-hidden">
@@ -255,32 +317,58 @@ export default function Portfolio() {
         {/* Pagination Desktop */}
         {totalPages > 1 && (
           <div className="hidden md:flex justify-center items-center gap-6 mt-16">
+            {/* LEFT BUTTON */}
             <button
               onClick={() => {
-                setCurrentPage((p) => Math.max(p - 1, 1));
-                portfolioRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                });
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                  portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+                }
               }}
-              className="text-xs uppercase tracking-[0.2em] hover:text-[var(--havia-gold)]"
+              className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
             >
-              Prev
+              <ChevronLeft size={16} />
             </button>
 
-            <span className="text-xs">
-              {currentPage} / {totalPages}
-            </span>
+            {/* PAGE NUMBERS */}
+            <div className="flex items-center gap-4">
+              {getPagination().map((page, i) =>
+                page === "..." ? (
+                  <span key={i} className="text-havia-charcoal/40">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentPage(page as number);
+                      portfolioRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                      });
+                    }}
+                    className={`text-sm ${
+                      currentPage === page
+                        ? "text-havia-gold"
+                        : "text-havia-charcoal/40 hover:text-[var(--havia-gold)]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+            </div>
 
+            {/* RIGHT BUTTON */}
             <button
               onClick={() => {
-                setCurrentPage((p) => Math.min(p + 1, totalPages));
-                portfolioRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                });
+                if (currentPage < totalPages) {
+                  setCurrentPage(currentPage + 1);
+                  portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+                }
               }}
-              className="text-xs uppercase tracking-[0.2em] hover:text-[var(--havia-gold)]"
+              className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
             >
-              Next
+              <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -289,7 +377,7 @@ export default function Portfolio() {
       {/* Project Modal */}
       {selectedProject && (
         <div className="fixed inset-0 bg-black/80 z-50 overflow-y-auto">
-          <div className="min-h-screen flex items-start md:items-center justify-center p-4 md:p-10 mt-20 md:mt-0">
+          <div className="min-h-screen flex items-start md:items-center justify-center p-4 md:p-10 md:mt-0">
             <div className="bg-white max-w-7xl w-full rounded-sm shadow-xl relative">
               {/* CLOSE BUTTON */}
               <button
@@ -302,17 +390,33 @@ export default function Portfolio() {
               {/* CONTENT */}
               <div className="grid md:grid-cols-2">
                 {/* LEFT IMAGE */}
-                <div className="bg-havia-offwhite p-4 md:p-6">
-                  <div className="relative h-[260px] md:h-[520px] w-full mb-4">
+                <div className="bg-havia-offwhite p-4 md:p-6 overflow-hidden">
+                  <div className="relative h-[260px] md:h-[520px] w-full mb-4 group">
                     <Image
                       src={selectedProject.images[activeImage]}
                       alt=""
                       fill
                       className="object-cover"
                     />
+
+                    {/* PREVIOUS */}
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    {/* NEXT */}
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
                   </div>
 
-                  <div className="flex gap-3 overflow-x-auto">
+                  <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 pt-1 max-w-full">
                     {selectedProject.images.map((img, i) => (
                       <button
                         key={i}

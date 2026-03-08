@@ -48,7 +48,7 @@ export default function Contact() {
           {/* Kontak */}
           <div>
             <h4 className="text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
-              Kontak
+              Alamat
             </h4>
 
             <div className="space-y-5 text-white/70">
@@ -63,7 +63,9 @@ export default function Contact() {
                   Kec. Kiaracondong, Kota Bandung
                 </p>
               </a>
-
+              <h4 className="mt-10 text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
+                Kontak
+              </h4>
               <a
                 href="https://wa.me/628112430121"
                 target="_blank"
