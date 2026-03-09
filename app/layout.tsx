@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "Havia Studio | Architecture & Interior Design Studio",
+    title: "Havia Studio | Architecture, Interior & Masterplan Design Studio",
     description:
       "Studio arsitektur dan desain interior berbasis di Bandung yang menghadirkan solusi desain fungsional, estetis, dan berkelanjutan.",
     url: "https://web.havia.id/",
