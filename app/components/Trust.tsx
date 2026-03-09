@@ -16,19 +16,19 @@ export default function Trust() {
   const testimonials: Testimonial[] = [
     {
       id: 1,
-      image: "/havia-testimonial-1.jpg",
+      image: "/logo-client-1.png",
       quote:
         "Havia Studio delivered beyond expectation. The design feels timeless and deeply thoughtful.",
-      name: "Residential Client",
+      name: "Edelweiss Hospital",
       role: "Bandung",
     },
     {
       id: 2,
-      image: "/havia-testimonial-2.jpg",
+      image: "/logo-client-4.png",
       quote:
         "Professional, detail-oriented, and visionary in every aspect of the project execution.",
-      name: "Healthcare Project Owner",
-      role: "Jakarta",
+      name: "Cendekia Muda Islamic School",
+      role: "Bandung",
     },
   ];
 
@@ -44,9 +44,6 @@ export default function Trust() {
     "/logo-client-9.png",
     "/logo-client-10.png",
     "/logo-client-11.png",
-    "/logo-client-12.png",
-    "/logo-client-11.png",
-    "/logo-client-12.png",
     "/logo-client-12.png",
   ];
 
@@ -90,35 +87,34 @@ export default function Trust() {
         </div>
 
         {/* TESTIMONIALS */}
-        <div className="space-y-16 md:space-y-28 mb-24">
+        <div className="grid gap-10 mb-24 md:grid-cols-2">
           {testimonials.map((item, index) => (
             <div
               key={item.id}
-              className="grid md:grid-cols-2 gap-10 md:gap-16 items-center"
+              className={`bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] p-8 md:p-18 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-10`}
             >
-              {/* Image */}
-              <div className={`${index % 2 !== 0 ? "md:order-2" : ""}`}>
-                <div className="relative h-[260px] md:h-[420px] w-full overflow-hidden rounded-xl">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+              {/* Logo / Photo */}
+              <div className="relative w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden border border-[rgba(44,42,41,0.3)] bg-white">
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  className="object-contain p-3"
+                />
               </div>
 
               {/* Text */}
-              <div className={`${index % 2 !== 0 ? "md:order-1" : ""}`}>
-                <p className="text-base md:text-xl leading-relaxed text-havia-charcoal italic">
+              <div className="flex-1">
+                <p className="text-base md:text-lg leading-relaxed text-havia-charcoal italic">
                   “{item.quote}”
                 </p>
 
-                <div className="mt-6 md:mt-8">
+                <div className="w-12 h-[2px] bg-havia-gold mb-4 mt-4"></div>
+                <div className="mt-5">
                   <p className="text-sm uppercase tracking-[0.2em] text-havia-charcoal">
                     {item.name}
                   </p>
-                  <p className="text-sm text-havia-charcoal/60 mt-1 md:mt-2">
+                  <p className="text-sm text-havia-charcoal/60 mt-1">
                     {item.role}
                   </p>
                 </div>
