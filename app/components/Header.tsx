@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
-export default function Header() {
+export default function Header({ cmsData }: { cmsData: any }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -24,20 +24,17 @@ export default function Header() {
           className={`transition-all duration-500 rounded-full border 
           ${scrolled 
             ? "w-full max-w-5xl bg-black/60 backdrop-blur-3xl border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.4)]" 
-            : "w-full max-w-3xl bg-white/10 backdrop-blur-xl border-white/20"}
-          `}
+            : "w-full max-w-3xl bg-white/10 backdrop-blur-xl border-white/20"}`}
         >
           <nav
             className={`flex items-center justify-between transition-all duration-500
-            ${scrolled ? "px-5 py-2.5" : "px-4 py-2.5"}
-            `}
+            ${scrolled ? "px-5 py-2.5" : "px-4 py-2.5"}`}
           >
             {/* Logo */}
             <a
               href="#hero"
               className={`relative transition-all duration-500 
-              ${scrolled ? "w-[120px] h-[32px]" : "w-[105px] h-[26px]"}
-              `}
+              ${scrolled ? "w-[120px] h-[32px]" : "w-[105px] h-[26px]"}`}
             >
               <Image
                 src="/logo-havia-primary-white.png"
@@ -51,8 +48,7 @@ export default function Header() {
             {/* Desktop Menu */}
             <ul
               className={`hidden md:flex items-center uppercase tracking-[0.2em] text-white transition-all duration-500
-              ${scrolled ? "gap-10 text-xs" : "gap-8 text-[11px]"}
-              `}
+              ${scrolled ? "gap-10 text-xs" : "gap-8 text-[11px]"}`}
             >
               <li><a href="#about" className="hover:text-[var(--havia-gold)] transition">About</a></li>
               <li><a href="#portfolio" className="hover:text-[var(--havia-gold)] transition">Portfolio</a></li>

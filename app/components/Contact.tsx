@@ -3,7 +3,25 @@
 import Image from "next/image";
 import { Instagram, Linkedin, MapPin, Phone, Mail } from "lucide-react";
 
-export default function Contact() {
+export default function Contact({ cmsData }: { cmsData: any }) {
+  const tagline = cmsData?.landingpage_contact_p || "Partner terpercaya untuk merancang dan membangun masa depan Anda.";
+  const instagramUrl = cmsData?.landingpage_contact_instagram || "https://www.instagram.com/studiohavia/";
+  const linkedinUrl = cmsData?.landingpage_contact_linkedin || "https://www.linkedin.com/company/havia-studio/";
+  const address = cmsData?.landingpage_contact_address || "Jl. Sulaksana Baru III No.20, Cicaheum, Kec. Kiaracondong, Kota Bandung";
+  const mapsUrl = cmsData?.landingpage_contact_maps_url || "https://maps.app.goo.gl/WgGBhZU66tGKscuA7";
+  const phone = cmsData?.landingpage_contact_phone || "+62 811 2430 121";
+  const email = cmsData?.landingpage_contact_email || "haviastudio@gmail.com";
+  const hoursWeekday = cmsData?.landingpage_contact_hours_weekday || "Senin - Jumat / 08:00 - 17:00";
+  const hoursWeekend = cmsData?.landingpage_contact_hours_weekend || "Sabtu - Minggu / Tutup";
+  const copyright = cmsData?.landingpage_contact_copyright || "\u00A9 2026 Havia Studio. All rights reserved.";
+
+  // Parse weekday/weekend into label + value
+  const weekdayParts = hoursWeekday.split(" / ");
+  const weekendParts = hoursWeekend.split(" / ");
+
+  // Format phone for WA link (strip spaces, +, -)
+  const waPhone = phone.replace(/[\s\-\+]/g, "");
+
   return (
     <section id="contact" className="bg-black text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-8">
@@ -22,12 +40,12 @@ export default function Contact() {
             </div>
 
             <p className="text-white/70 leading-relaxed mb-8 max-w-sm">
-              Partner terpercaya untuk merancang dan membangun masa depan Anda.
+              {tagline}
             </p>
 
             <div className="flex gap-4">
               <a
-                href="https://www.instagram.com/studiohavia/"
+                href={instagramUrl}
                 target="_blank"
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-havia-gold hover:text-[var(--havia-gold)] transition"
               >
@@ -35,7 +53,7 @@ export default function Contact() {
               </a>
 
               <a
-                href="https://www.linkedin.com/company/havia-studio/"
+                href={linkedinUrl}
                 target="_blank"
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-havia-gold hover:text-[var(--havia-gold)] transition"
               >
@@ -52,34 +70,33 @@ export default function Contact() {
 
             <div className="space-y-5 text-white/70">
               <a
-                href="https://maps.app.goo.gl/WgGBhZU66tGKscuA7"
+                href={mapsUrl}
                 target="_blank"
                 className="flex gap-4 items-start hover:text-white transition"
               >
                 <MapPin size={18} className="mt-1 text-havia-gold" />
                 <p className="max-w-xs">
-                  Jl. Sulaksana Baru III No.20, Cicaheum <br />
-                  Kec. Kiaracondong, Kota Bandung
+                  {address}
                 </p>
               </a>
               <h4 className="mt-10 text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
                 Kontak
               </h4>
               <a
-                href="https://wa.me/628112430121"
+                href={`https://wa.me/${waPhone}`}
                 target="_blank"
                 className="flex gap-4 items-center hover:text-white transition"
               >
                 <Phone size={18} className="text-havia-gold" />
-                <p>+62 811 2430 121</p>
+                <p>{phone}</p>
               </a>
 
               <a
-                href="mailto:haviastudio@gmail.com"
+                href={`mailto:${email}`}
                 className="flex gap-4 items-center hover:text-white transition"
               >
                 <Mail size={18} className="text-havia-gold" />
-                <p>haviastudio@gmail.com</p>
+                <p>{email}</p>
               </a>
             </div>
           </div>
@@ -121,13 +138,13 @@ export default function Contact() {
 
             <div className="space-y-4 text-white/70">
               <div className="flex justify-between">
-                <span>Senin - Jumat</span>
-                <span>08:00 - 17:00</span>
+                <span>{weekdayParts[0] || "Senin - Jumat"}</span>
+                <span>{weekdayParts[1] || "08:00 - 17:00"}</span>
               </div>
 
               <div className="flex justify-between">
-                <span>Sabtu - Minggu</span>
-                <span className="text-havia-gold">Tutup</span>
+                <span>{weekendParts[0] || "Sabtu - Minggu"}</span>
+                <span className="text-havia-gold">{weekendParts[1] || "Tutup"}</span>
               </div>
             </div>
           </div>
@@ -135,7 +152,7 @@ export default function Contact() {
 
         {/* Divider */}
         <div className="border-t border-white/10 mt-16 pt-8 text-center text-sm text-white/40">
-          © 2026 Havia Studio. All rights reserved.
+          {copyright}
         </div>
       </div>
     </section>

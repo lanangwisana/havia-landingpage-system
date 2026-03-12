@@ -2,10 +2,18 @@
 
 import { MessageCircle } from "lucide-react";
 
-export default function WhatsappCTA() {
+export default function WhatsappCTA({ cmsData }: { cmsData: any }) {
+  const phone = cmsData?.landingpage_whatsapp_phone || "628112430121";
+  const label = cmsData?.landingpage_whatsapp_label || "Chat WhatsApp";
+  const message = cmsData?.landingpage_whatsapp_message || "";
+
+  const waUrl = message
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/${phone}`;
+
   return (
     <a
-      href="https://wa.me/628112430121"
+      href={waUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="
@@ -22,7 +30,7 @@ export default function WhatsappCTA() {
     >
       <MessageCircle size={20} />
       <span className="text-sm font-medium hidden sm:inline">
-        Chat WhatsApp
+        {label}
       </span>
 
       {/* Pulse effect */}

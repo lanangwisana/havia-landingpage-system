@@ -1,6 +1,15 @@
 import Image from "next/image";
 
-export default function About() {
+export default function About({ cmsData }: { cmsData: any }) {
+  const accent = cmsData?.landingpage_about_accent || "About Havia";
+  const h2 = cmsData?.landingpage_about_h2 || "Architecture Rooted in Clarity and Craft.";
+  const p1 = cmsData?.landingpage_about_p1 || "Halo! Kami Havia Studio. Studio Arsitektur yang hadir untuk membantu anda mewujudkan desain bangunan terbaik sesuai kebutuhan anda melalui kolaborasi dalam pelaksanaannya.";
+  const p2 = cmsData?.landingpage_about_p2 || "Dengan pengalaman hampir 10 tahun di dunia rancang bangun, kami semakin yakin untuk bisa membantu lebih banyak visi menjadi nyata.";
+  const stat1Val = cmsData?.landingpage_about_stat1_val || "120+";
+  const stat1Label = cmsData?.landingpage_about_stat1_label || "Projects Completed";
+  const stat2Val = cmsData?.landingpage_about_stat2_val || "10";
+  const stat2Label = cmsData?.landingpage_about_stat2_label || "Years of Practice";
+
   return (
     <section
       id="about"
@@ -23,44 +32,41 @@ export default function About() {
           <div className="flex items-center gap-4 mb-6">
             <div className="h-[1px] w-10 bg-havia-gold" />
             <span className="text-[11px] md:text-xs tracking-[0.2em] uppercase text-havia-gold font-semibold">
-              About Havia
+              {accent}
             </span>
           </div>
 
           {/* Heading */}
           <h2 className="text-3xl sm:text-3xl md:text-4xl font-[Helvetica] leading-tight text-havia-charcoal mb-6 md:mb-8">
-            Architecture Rooted in Clarity and Craft.
+            {h2}
           </h2>
 
           {/* Body */}
           <p className="mb-5 md:mb-6 text-sm md:text-base text-havia-charcoal/80 leading-relaxed">
-            Halo! Kami Havia Studio. Studio Arsitektur yang hadir untuk membantu
-            anda mewujudkan desain bangunan terbaik sesuai kebutuhan anda
-            melalui kolaborasi dalam pelaksanaannya.
+            {p1}
           </p>
 
           <p className="text-sm md:text-base text-havia-charcoal/80 leading-relaxed">
-            Dengan pengalaman hampir 10 tahun di dunia rancang bangun, kami
-            semakin yakin untuk bisa membantu lebih banyak visi menjadi nyata.
+            {p2}
           </p>
 
           {/* Stats */}
           <div className="mt-10 md:mt-14 grid grid-cols-2 gap-8 md:gap-10 border-t border-havia-charcoal/20 pt-8 md:pt-10">
             <div>
               <p className="text-3xl md:text-4xl font-light text-havia-charcoal">
-                120+
+                {stat1Val}
               </p>
               <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-havia-charcoal/60 mt-2">
-                Projects Completed
+                {stat1Label}
               </p>
             </div>
 
             <div>
               <p className="text-3xl md:text-4xl font-light text-havia-charcoal">
-                10
+                {stat2Val}
               </p>
               <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-havia-charcoal/60 mt-2">
-                Years of Practice
+                {stat2Label}
               </p>
             </div>
           </div>

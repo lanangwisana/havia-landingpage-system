@@ -9,8 +9,16 @@ const images = [
   "/havia-project-3.jpg",
 ];
 
-export default function Hero() {
+export default function Hero({ cmsData }: { cmsData: any }) {
   const [current, setCurrent] = useState(0);
+
+  const heroLabel = cmsData?.landingpage_hero_label || "Architecture Studio, Indonesia";
+  const h1 = cmsData?.landingpage_hero_h1 || "Creating Space.";
+  const h2 = cmsData?.landingpage_hero_h2 || "Facing the Future.";
+  const h3 = cmsData?.landingpage_hero_h3 || "Designing a Good Life.";
+  const p = cmsData?.landingpage_hero_p || "Havia Studio berkomitmen penuh membantu, melayani, dan mewujudkan desain sesuai kebutuhan dan harapan.";
+  const btn1 = cmsData?.landingpage_hero_btn1 || "Contact Us";
+  const btn2 = cmsData?.landingpage_hero_btn2 || "View Portfolio";
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -48,27 +56,26 @@ export default function Hero() {
           <div className="flex items-center gap-4 mb-6">
             <div className="h-[1px] w-10 bg-havia-gold" />
             <span className="text-[10px] md:text-xs tracking-[0.35em] md:tracking-[0.4em] text-havia-gold uppercase">
-              Architecture Studio, Indonesia
+              {heroLabel}
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="font-[Helvetica] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">
-            Creating Space.
+            {h1}
           </h1>
 
           <h1 className="font-[Helvetica] italic text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-300">
-            Facing the Future.
+            {h2}
           </h1>
 
           <h1 className="font-[Helvetica] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight md:whitespace-nowrap">
-            Designing a Good Life.
+            {h3}
           </h1>
 
           {/* Paragraph */}
           <p className="mt-6 md:mt-8 text-sm md:text-base text-neutral-200 leading-relaxed max-w-lg">
-            Havia Studio berkomitmen penuh membantu, melayani, dan mewujudkan
-            desain sesuai kebutuhan dan harapan.
+            {p}
           </p>
 
           {/* Buttons */}
@@ -77,7 +84,7 @@ export default function Hero() {
               href="#contact"
               className="px-5 md:px-6 py-3 bg-havia-gold text-havia-charcoal text-[10px] md:text-xs uppercase tracking-widest hover:opacity-90 transition"
             >
-              Contact Us
+              {btn1}
             </a>
 
             <a
@@ -85,7 +92,7 @@ export default function Hero() {
               className="inline-flex items-center gap-3 text-havia-white group text-sm"
             >
               <span className="border-b border-havia-white pb-1">
-                View Portfolio
+                {btn2}
               </span>
               <span className="transition group-hover:translate-x-2">→</span>
             </a>
