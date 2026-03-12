@@ -47,28 +47,6 @@ export default function Trust() {
     "/logo-client-12.png",
   ];
 
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(14);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setPerPage(6);
-      } else {
-        setPerPage(14);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const totalPages = Math.ceil(clients.length / perPage);
-
-  const visibleClients = clients.slice((page - 1) * perPage, page * perPage);
-
   return (
     <section id="trust" className="py-24 bg-havia-offwhite">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
@@ -123,66 +101,43 @@ export default function Trust() {
           ))}
         </div>
 
-        {/* CLIENTS */}
-        <div className="border-t pt-16">
+        {/* CLIENT LOGO CAROUSEL */}
+        <div className="border-t pt-16 overflow-hidden">
           {/* HEADING */}
           <div className="relative mb-10 flex items-center">
-            {/* GOLD BLOCK */}
             <div className="w-6 md:w-10 h-16 md:h-20 bg-havia-gold mr-6" />
 
-            {/* TEXT + LINE */}
             <div className="flex-1">
-              <h3 className="text-xl md:text-2xl font-[Helvetica] text-havia-charcoal mb-2">
+              <h3 className="text-xl md:text-2xl font-[Helvetica] text-havia-charcoal">
                 Our Clients
               </h3>
             </div>
           </div>
 
-          {/* LOGO GRID */}
-          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6 items-center">
-            {visibleClients.map((logo, i) => (
-              <div key={i} className="flex justify-center">
-                <div className="relative w-full h-[80px] md:h-[90px] border border-[rgba(44,42,41,0.3)] rounded-xl flex items-center justify-center bg-havia-offwhite">
-                  <Image
-                    src={logo}
-                    alt="Client Logo"
-                    fill
-                    className="object-contain p-4"
-                  />
+          <div className="relative w-full overflow-hidden">
+            <div className="flex animate-client-scroll gap-4 md:gap-6">
+              {[...clients, ...clients].map((logo, i) => (
+                <div
+                  key={i}
+                  className="min-w-[120px] md:min-w-[160px] h-[70px] md:h-[90px] border border-[rgba(44,42,41,0.3)] rounded-xl flex items-center justify-center bg-havia-offwhite"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={logo}
+                      alt="Client Logo"
+                      fill
+                      className="object-contain p-3 md:p-4"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* STILL COUNTING */}
-          {page === totalPages && (
-            <p className="text-center mt-10 text-sm tracking-[0.25em] text-havia-charcoal opacity-40 font-medium">
-              — And still counting —
-            </p>
-          )}
-
-          {/* PAGINATION */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-6 mt-8">
-              <button
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <span className="text-xs tracking-widest text-havia-charcoal/60">
-                {page} / {totalPages}
-              </span>
-
-              <button
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          )}
+          <p className="text-center mt-10 text-sm tracking-[0.25em] text-havia-charcoal opacity-40 font-medium">
+            — And still counting —
+          </p>
         </div>
       </div>
     </section>

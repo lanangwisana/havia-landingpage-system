@@ -1,33 +1,72 @@
 @import "tailwindcss";
 
 :root {
-  --havia-gold: #C69C3D;
-  --havia-charcoal: #2C2A29;
-  --havia-cream: #F4EBD4;
-  --havia-offwhite: #F2F1F0;
+  --havia-gold: #c69c3d;
+  --havia-charcoal: #2c2a29;
+  --havia-cream: #f4ebd4;
+  --havia-offwhite: #f2f1f0;
   --havia-white: #ffffff;
 }
 
+@keyframes client-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-client-scroll {
+  animation: client-scroll 20s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .animate-client-scroll {
+    animation: client-scroll 15s linear infinite;
+  }
+}
+
 @layer utilities {
-  .bg-havia-gold { background-color: var(--havia-gold); }
-  .bg-havia-charcoal { background-color: var(--havia-charcoal); }
-  .bg-havia-cream { background-color: var(--havia-cream); }
-  .bg-havia-offwhite { background-color: var(--havia-offwhite); }
-  .bg-havia-white { background-color: var(--havia-white); }
+  .bg-havia-gold {
+    background-color: var(--havia-gold);
+  }
+  .bg-havia-charcoal {
+    background-color: var(--havia-charcoal);
+  }
+  .bg-havia-cream {
+    background-color: var(--havia-cream);
+  }
+  .bg-havia-offwhite {
+    background-color: var(--havia-offwhite);
+  }
+  .bg-havia-white {
+    background-color: var(--havia-white);
+  }
 
-  .text-havia-gold { color: var(--havia-gold); }
-  .text-havia-charcoal { color: var(--havia-charcoal); }
-  .text-havia-white { color: var(--havia-white); }
+  .text-havia-gold {
+    color: var(--havia-gold);
+  }
+  .text-havia-charcoal {
+    color: var(--havia-charcoal);
+  }
+  .text-havia-white {
+    color: var(--havia-white);
+  }
 
-  .border-havia-gold { border-color: var(--havia-gold); }
-  .border-havia-charcoal { border-color: var(--havia-charcoal); }
+  .border-havia-gold {
+    border-color: var(--havia-gold);
+  }
+  .border-havia-charcoal {
+    border-color: var(--havia-charcoal);
+  }
 }
 
 body {
   overflow-x: hidden;
   background-color: var(--havia-offwhite);
   color: var(--havia-charcoal);
-  font-family: "Work Sans", sans-serif, Helvetica, 'Open Sans';
+  font-family: "Work Sans", sans-serif, Helvetica, "Open Sans";
 }
 
 html {

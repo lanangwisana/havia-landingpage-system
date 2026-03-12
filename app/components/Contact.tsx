@@ -22,8 +22,7 @@ export default function Contact() {
             </div>
 
             <p className="text-white/70 leading-relaxed mb-8 max-w-sm">
-              Partner terpercaya untuk merancang dan membangun masa depan Anda
-              di Bandung.
+              Partner terpercaya untuk merancang dan membangun masa depan Anda.
             </p>
 
             <div className="flex gap-4">
