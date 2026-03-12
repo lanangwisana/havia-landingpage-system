@@ -57,7 +57,7 @@ export default function About() {
 
             <div>
               <p className="text-3xl md:text-4xl font-light text-havia-charcoal">
-                12
+                10
               </p>
               <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-havia-charcoal/60 mt-2">
                 Years of Practice
