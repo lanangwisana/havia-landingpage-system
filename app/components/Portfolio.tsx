@@ -1,8 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  X,
+  Undo2,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import Header from "../components/Header";
+import Link from "next/link";
 
 type Project = {
   id: number;
@@ -21,7 +32,7 @@ const staticProjects: Project[] = [
   {
     id: 1,
     title: "S House",
-    category: "Private",
+    category: "Residential",
     image: "/havia-project-5.jpg",
     location: "Bandung",
     year: "2023",
@@ -34,7 +45,7 @@ const staticProjects: Project[] = [
   {
     id: 2,
     title: "Klinik Edelweiss",
-    category: "Public",
+    category: "Commercial",
     image: "/havia-project-4.jpg",
     location: "Bandung",
     year: "2024",
@@ -47,7 +58,7 @@ const staticProjects: Project[] = [
   {
     id: 3,
     title: "Avilla Lembang",
-    category: "Private",
+    category: "Residential",
     image: "/havia-project-10.jpg",
     location: "Lembang, Bandung",
     year: "2022",
@@ -60,7 +71,7 @@ const staticProjects: Project[] = [
   {
     id: 4,
     title: "DN House",
-    category: "Private",
+    category: "Residential",
     image: "/havia-project-2.jpg",
     location: "Tanah Datar, Sumatra Barat",
     year: "2024",
@@ -72,12 +83,16 @@ const staticProjects: Project[] = [
       "/havia-project-2.jpg",
       "/havia-project-12.jpg",
       "/havia-project-13.jpg",
+      "/havia-project-12.jpg",
+      "/havia-project-13.jpg",
+      "/havia-project-12.jpg",
+      "/havia-project-13.jpg",
     ],
   },
   {
     id: 5,
     title: "Kampus Baru SMA Cendekia Muda",
-    category: "Public",
+    category: "Educational",
     image: "/havia-project-1.jpg",
     location: "Bandung",
     year: "2024",
@@ -94,7 +109,7 @@ const staticProjects: Project[] = [
   {
     id: 6,
     title: "Darul Hikam Integrated School ",
-    category: "Public",
+    category: "Educational",
     image: "/havia-project-16.jpg",
     location: "Bandung",
     year: "2023",
@@ -107,7 +122,7 @@ const staticProjects: Project[] = [
   {
     id: 7,
     title: "DS House",
-    category: "Private",
+    category: "Residential",
     image: "/havia-project-17.jpg",
     location: "Meulaboh, Aceh",
     year: "2023",
@@ -135,386 +150,656 @@ const staticProjects: Project[] = [
 export default function Portfolio({ cmsData }: { cmsData: any }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [mobileModalImageCount, setMobileModalImageCount] = useState(3);
 
   const portfolioRef = useRef<HTMLElement | null>(null);
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const modalContentRef = useRef<HTMLDivElement | null>(null);
 
-  const accent = cmsData?.landingpage_portfolio_accent || "Portfolio";
-  const h2 = cmsData?.landingpage_portfolio_h2 || "Selected Works";
-  const downloadText = cmsData?.landingpage_portfolio_download_text || "Download Portfolio";
+  // CMS Data
+  const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
-  const nextImage = () => {
-    if (!selectedProject) return;
-    setActiveImage((prev) =>
-      prev === selectedProject.images.length - 1 ? 0 : prev + 1,
-    );
-  };
-
-  const prevImage = () => {
-    if (!selectedProject) return;
-    setActiveImage((prev) =>
-      prev === 0 ? selectedProject.images.length - 1 : prev - 1,
-    );
-  };
-
-  const itemsPerPage = 6;
-
-  // Use CMS projects if available, otherwise use static
+  // Use CMS projects if available, otherwise use static (ambil 9 project pertama)
   const projects: Project[] =
-    cmsData?.landingpage_portfolio_json && Array.isArray(cmsData.landingpage_portfolio_json) && cmsData.landingpage_portfolio_json.length > 0
-      ? cmsData.landingpage_portfolio_json
+    cmsData?.landingpage_portfolio_json &&
+    Array.isArray(cmsData.landingpage_portfolio_json) &&
+    cmsData.landingpage_portfolio_json.length > 0
+      ? cmsData.landingpage_portfolio_json.slice(0, 9)
       : staticProjects;
 
-  const categories = ["All", "Private", "Public", "Masterplan"];
+  const categories = [
+    "All",
+    "Residential",
+    "Commercial",
+    "Educational",
+    "Interior",
+    "Masterplan",
+  ];
 
   const filtered =
     activeCategory === "All"
       ? projects
       : projects.filter((p) => p.category === activeCategory);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  // Batasi hanya 9 card
+  const displayProjects = filtered.slice(0, 9);
 
-  const paginatedProjects = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-  const getPagination = () => {
-    const pages: (number | string)[] = [];
+  // ================= SCROLL SPY WITH SMOOTH TRANSITION =================
+  useEffect(() => {
+    if (!selectedProject) return;
 
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isScrolling) return;
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute("data-index"));
+            setActiveImage(index);
+          }
+        });
+      },
+      { threshold: 0.7 },
+    );
+
+    imageRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      imageRefs.current.forEach((el) => {
+        if (el) observer.unobserve(el);
+      });
+      observer.disconnect();
+    };
+  }, [selectedProject, isScrolling]);
+
+  const scrollToImage = (index: number) => {
+    if (!imageRefs.current[index] || !modalContentRef.current) return;
+
+    setActiveImage(index);
+
+    const container = modalContentRef.current;
+    const element = imageRefs.current[index];
+
+    if (element) {
+      const elementPosition = element.offsetTop;
+      const containerHeight = container.clientHeight;
+      const elementHeight = element.clientHeight;
+
+      const scrollTo =
+        elementPosition - containerHeight / 2 + elementHeight / 2;
+
+      const startPosition = container.scrollTop;
+      const distance = scrollTo - startPosition;
+      const duration = 600;
+      let startTime: number | null = null;
+
+      const animation = (currentTime: number) => {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+
+        const ease = (t: number) =>
+          t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+        container.scrollTop = startPosition + distance * ease(progress);
+
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        } else {
+          setIsScrolling(false);
+        }
+      };
+
+      setIsScrolling(true);
+      requestAnimationFrame(animation);
     }
+  };
 
-    pages.push(1);
+  const setImageRef = (index: number) => (el: HTMLDivElement | null) => {
+    imageRefs.current[index] = el;
+  };
 
-    if (currentPage > 3) {
-      pages.push("...");
+  useEffect(() => {
+    setMobileModalImageCount(3);
+  }, [selectedProject]);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const nextImage = () => {
+    if (selectedProject) {
+      setLightboxIndex((prev) =>
+        prev === selectedProject.images.length - 1 ? 0 : prev + 1,
+      );
     }
+  };
 
-    const start = Math.max(2, currentPage - 1);
-    const end = Math.min(totalPages - 1, currentPage + 1);
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
+  const prevImage = () => {
+    if (selectedProject) {
+      setLightboxIndex((prev) =>
+        prev === 0 ? selectedProject.images.length - 1 : prev - 1,
+      );
     }
-
-    if (currentPage < totalPages - 2) {
-      pages.push("...");
-    }
-
-    pages.push(totalPages);
-
-    return pages;
+  };
+  
+  const closeModal = () => {
+    setSelectedProject(null);
+    setLightboxOpen(false);
   };
 
   return (
-    <section id="portfolio" ref={portfolioRef} className="py-24 bg-havia-white">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        {/* Heading */}
-        <div className="mb-10 flex items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-4 mb-2 md:mb-6">
-              <div className="h-[1px] w-10 bg-havia-gold" />
-              <span className="text-xs uppercase tracking-[0.2em] text-havia-gold font-semibold">
-                {accent}
-              </span>
-            </div>
-
-            <h2 className="text-3xl md:text-4xl font-[Helvetica] text-havia-charcoal">
+    <section
+      ref={portfolioRef}
+      id="portfolio"
+      className="py-16 md:py-20"
+      style={{ backgroundColor: "#f2f1f0" }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        {/* HEADER */}
+        <div className="mb-8 md:mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-8"
+          >
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[#2c2a29]">
               {h2}
             </h2>
+            <div className="w-12 h-[2px] bg-[#c69c3d]/50 mt-2" />
+          </motion.div>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            {/* FILTER - Clean minimal design */}
+            <div className="flex flex-wrap gap-2 md:gap-6">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`relative px-3 py-2 text-sm transition-all duration-300 ${
+                    activeCategory === cat
+                      ? "font-medium after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#2c2a29]"
+                      : "hover:text-gray-600"
+                  }`}
+                  style={{
+                    color: activeCategory === cat ? "#2c2a29" : "#9ca3af",
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* Tombol Download PDF */}
-          <a
-            href="/havia-portofolio.pdf"
-            download
-            className="text-[10px] md:text-xs uppercase tracking-[0.15em] text-white bg-havia-gold px-3 py-1.5 md:px-5 md:py-2 rounded-full hover:opacity-90 transition whitespace-nowrap"
-          >
-            {downloadText}
-          </a>
         </div>
 
-        {/* Filter */}
-        <div className="flex gap-6 md:gap-10 mb-10 overflow-x-auto">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                setActiveCategory(cat);
-                setCurrentPage(1);
-              }}
-              className={`text-xs uppercase tracking-[0.2em] whitespace-nowrap ${
-                activeCategory === cat
-                  ? "text-havia-gold border-b border-havia-gold"
-                  : "text-havia-charcoal/50 hover:text-[var(--havia-gold)] transition"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Desktop Grid */}
-        <div className="hidden md:grid grid-cols-3 gap-8">
-          {paginatedProjects.map((project) => (
+        {/* GRID - Desktop (3x3 = 9 card) */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {displayProjects.map((project) => (
             <div
               key={project.id}
               onClick={() => {
                 setSelectedProject(project);
                 setActiveImage(0);
               }}
-              className="group cursor-pointer"
+              className="group cursor-pointer relative"
             >
-              <div className="relative h-80 overflow-hidden">
+              <div
+                className="relative aspect-[5/3] overflow-hidden"
+                style={{ backgroundColor: "#f2f1f0" }}
+              >
                 <Image
                   src={project.image}
                   alt={project.title}
                   fill
-                  className="object-cover transition duration-700 group-hover:scale-105"
+                  className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-500" />
 
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition duration-500 flex items-end p-6">
-                  <div className="opacity-0 group-hover:opacity-100 transition duration-500">
-                    <p className="text-xs uppercase tracking-[0.1em] text-havia-gold mb-2 font-medium">
-                      {project.location}
+                {/* HOVER OVERLAY - slide up */}
+                <div className="absolute bottom-0 left-0 right-0 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="bg-white/90 backdrop-blur-sm py-3 px-4">
+                    <p className="text-xs uppercase tracking-wider text-[#2c2a29] text-center">
+                      {project.title}
                     </p>
-
-                    <p className="text-sm text-white/90 line-clamp-1">
-                      {project.story}
+                    <p className="text-[10px] font-light text-[#2c2a29]/60 text-center">
+                      {project.location}
                     </p>
                   </div>
                 </div>
               </div>
-
-              <h3 className="mt-4 text-sm text-havia-charcoal font-medium">
-                {project.title}
-              </h3>
             </div>
           ))}
         </div>
 
-        {/* Mobile Slider */}
-        <div className="md:hidden flex gap-6 overflow-x-auto snap-x">
-          {filtered.map((project) => (
+        {/* GRID - Mobile (2 kolom x 5 baris = 10, tapi hanya 9 card) */}
+        <div className="grid grid-cols-2 gap-3 md:hidden">
+          {displayProjects.map((project) => (
             <div
               key={project.id}
-              onClick={() => setSelectedProject(project)}
-              className="min-w-[80%] snap-center cursor-pointer"
+              onClick={() => {
+                setSelectedProject(project);
+                setActiveImage(0);
+              }}
+              className="group cursor-pointer relative"
             >
-              <div className="relative h-64">
+              <div
+                className="relative aspect-[5/3] overflow-hidden"
+                style={{ backgroundColor: "#f2f1f0" }}
+              >
                 <Image
                   src={project.image}
                   alt={project.title}
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                  sizes="(max-width: 768px) 50vw"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-500" />
+
+                {/* HOVER OVERLAY - muncul saat hover */}
+                <div className="absolute inset-0 flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <p className="text-[10px] text-white/80 mb-0.5 truncate">
+                    {project.location}
+                  </p>
+                  <p className="text-xs font-medium text-white truncate">
+                    {project.title}
+                  </p>
+                </div>
               </div>
-
-              <h3 className="mt-4 text-sm text-havia-charcoal font-medium">
-                {project.title}
-              </h3>
-
-              <p className="text-xs text-havia-charcoal/60 mt-1">
-                {project.location}
-              </p>
             </div>
           ))}
         </div>
-
-        {/* Pagination Desktop */}
-        {totalPages > 1 && (
-          <div className="hidden md:flex justify-center items-center gap-6 mt-16">
-            {/* LEFT BUTTON */}
-            <button
-              onClick={() => {
-                if (currentPage > 1) {
-                  setCurrentPage(currentPage - 1);
-                  portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-              className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            {/* PAGE NUMBERS */}
-            <div className="flex items-center gap-4">
-              {getPagination().map((page, i) =>
-                page === "..." ? (
-                  <span key={i} className="text-havia-charcoal/40">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setCurrentPage(page as number);
-                      portfolioRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                      });
-                    }}
-                    className={`text-sm ${
-                      currentPage === page
-                        ? "text-havia-gold"
-                        : "text-havia-charcoal/40 hover:text-[var(--havia-gold)]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
-            </div>
-
-            {/* RIGHT BUTTON */}
-            <button
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  setCurrentPage(currentPage + 1);
-                  portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-              className="p-2 border border-havia-charcoal/20 rounded-full hover:border-havia-gold hover:text-[var(--havia-gold)] transition"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Project Modal */}
+      {/* ================= MODAL PROJECT ================= */}
       {selectedProject && (
-        <div className="fixed inset-0 bg-black/80 z-50 overflow-y-auto">
-          <div className="min-h-screen flex items-start md:items-center justify-center p-4 md:p-10 md:mt-0">
-            <div className="bg-white max-w-7xl w-full rounded-sm shadow-xl relative">
-              {/* CLOSE BUTTON */}
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="absolute top-4 right-4 md:top-6 md:right-6 z-20 p-2 bg-white/90 rounded-full shadow hover:scale-105 transition"
-              >
-                <X size={20} />
-              </button>
+        <div
+          className="fixed inset-0 z-50 overflow-hidden"
+          style={{ backgroundColor: "#ffffff" }}
+        >
+          {/* Header - Fixed di atas */}
+          <div className="absolute top-0 left-0 right-0 z-[70]">
+            <Header />
+          </div>
 
-              {/* CONTENT */}
-              <div className="grid md:grid-cols-2">
-                {/* LEFT IMAGE */}
-                <div className="bg-havia-offwhite p-4 md:p-6 overflow-hidden">
-                  <div className="relative h-[260px] md:h-[520px] w-full mb-4 group">
+          {/* Back to home button */}
+          <div className="absolute top-20 left-6 z-[70]">
+            <div className="max-w-7xl">
+              <button
+                onClick={closeModal}
+                className="inline-flex items-center gap-1 text-[12px] text-[#2c2a29]/20 hover:text-[#c69c3d] transition-colors"
+              >
+                <Undo2 size={18} />
+                Back to home
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
+            {/* THUMBNAIL SIDEBAR */}
+            <div
+              className="flex flex-col justify-center overflow-y-auto p-4 scrollbar-hide"
+              style={{ backgroundColor: "#ffffff" }}
+            >
+              <div className="space-y-4">
+                {selectedProject.images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => scrollToImage(i)}
+                    className={`relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
+                      activeImage === i
+                        ? "scale-[0.98]"
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                    style={{
+                      boxShadow:
+                        activeImage === i
+                          ? `0 0 0 2px ${i === activeImage ? "#c69c3d" : "#9ca3af"}`
+                          : "none",
+                    }}
+                  >
                     <Image
-                      src={selectedProject.images[activeImage]}
-                      alt=""
+                      src={img}
+                      alt={`Thumbnail ${i + 1}`}
                       fill
                       className="object-cover"
                     />
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    {/* PREVIOUS */}
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
+            {/* MAIN IMAGE SCROLL */}
+            <div
+              ref={modalContentRef}
+              className="overflow-y-auto scroll-smooth px-10 py-10 space-y-10 scrollbar-hide justify-items-center"
+              style={{ scrollBehavior: "smooth", backgroundColor: "#ffffff" }}
+            >
+              {selectedProject.images.map((img, i) => (
+                <div
+                  key={i}
+                  ref={setImageRef(i)}
+                  data-index={i}
+                  className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+                  onClick={() => openLightbox(i)}
+                >
+                  <Image
+                    src={img}
+                    alt=""
+                    fill
+                    className="object-cover rounded-lg"
+                  />
+                </div>
+              ))}
+            </div>
 
-                    {/* NEXT */}
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 pt-1 max-w-full">
-                    {selectedProject.images.map((img, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveImage(i)}
-                        className={`relative w-20 h-16 flex-shrink-0 border ${
-                          activeImage === i
-                            ? "border-havia-gold"
-                            : "border-transparent"
-                        }`}
-                      >
-                        <Image src={img} alt="" fill className="object-cover" />
-                      </button>
-                    ))}
-                  </div>
+            {/* INFO PANEL - Desktop */}
+            <div
+              className="overflow-y-auto p-8 scrollbar-hide"
+              style={{ backgroundColor: "#ffffff" }}
+            >
+              <div className="space-y-8">
+                <div>
+                  <h2
+                    className="text-2xl font-medium tracking-tight mb-2"
+                    style={{ color: "#2c2a29" }}
+                  >
+                    {selectedProject.title}
+                  </h2>
+                  <div
+                    className="w-12 h-[2px]"
+                    style={{ backgroundColor: "#c69c3d" }}
+                  />
                 </div>
 
-                {/* RIGHT CONTENT */}
-                <div className="p-5 md:p-12 font-[Helvetica]">
-                  <div className="flex items-center gap-4 mb-4 md:mb-6">
-                    <div className="h-[1px] w-8 bg-havia-gold" />
-                    <span className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-havia-gold font-semibold">
-                      Project
+                <div className="space-y-3 text-sm">
+                  <div style={{ color: "#2c2a29" }}>
+                    <span className="text-gray-400 w-20 inline-block">
+                      Location
+                    </span>
+                    <span className="font-medium">
+                      {selectedProject.location}
                     </span>
                   </div>
-
-                  <h3 className="text-xl md:text-3xl text-havia-charcoal mb-4">
-                    {selectedProject.title}
-                  </h3>
-
-                  {/* DESCRIPTION */}
-                  {selectedProject.story && (
-                    <p className="text-sm text-havia-charcoal/80 leading-relaxed mb-6 text-justify">
-                      {selectedProject.story}
-                    </p>
+                  <div style={{ color: "#2c2a29" }}>
+                    <span className="text-gray-400 w-20 inline-block">
+                      Year
+                    </span>
+                    <span className="font-medium">{selectedProject.year}</span>
+                  </div>
+                  {selectedProject.client && (
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Client
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.client}
+                      </span>
+                    </div>
                   )}
-
-                  {/* INFO */}
-                  <div className="border-t pt-6 grid grid-cols-2 gap-4 md:gap-6 text-sm">
-                    {/* LEFT COLUMN */}
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-havia-charcoal/60 font-semibold">
-                          Location
-                        </span>
-                        <p>{selectedProject.location}</p>
-                      </div>
-
-                      <div>
-                        <span className="text-havia-charcoal/60 font-semibold">
-                          Year
-                        </span>
-                        <p>{selectedProject.year}</p>
-                      </div>
-
-                      {selectedProject.client && (
-                        <div>
-                          <span className="text-havia-charcoal/60 font-semibold">
-                            Client
-                          </span>
-                          <p>{selectedProject.client}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* RIGHT COLUMN */}
-                    <div className="space-y-4">
-                      {selectedProject.scope && (
-                        <div>
-                          <span className="text-havia-charcoal/60 font-semibold">
-                            Scope of Work
-                          </span>
-                          <p>{selectedProject.scope.join(", ")}</p>
-                        </div>
-                      )}
-
-                      <div>
-                        <span className="text-havia-charcoal/60 font-semibold">
-                          Category
-                        </span>
-                        <p>{selectedProject.category}</p>
-                      </div>
-                    </div>
+                  <div style={{ color: "#2c2a29" }}>
+                    <span className="text-gray-400 w-20 inline-block">
+                      Category
+                    </span>
+                    <span className="font-medium">
+                      {selectedProject.category}
+                    </span>
                   </div>
                 </div>
+
+                {selectedProject.scope && (
+                  <div className="space-y-3 text-sm">
+                    <span className="text-gray-400 w-20 inline-block">
+                      Scope
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.scope.map((item, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs px-3 py-1.5 font-semibold"
+                          style={{
+                            backgroundColor: "#f2f1f0",
+                            color: "#2c2a29",
+                          }}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProject.story && (
+                  <div className="pt-2 text-justify">
+                    <p className="text-sm leading-relaxed text-gray-400">
+                      {selectedProject.story}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Layout */}
+          <div className="lg:hidden h-full overflow-y-auto pt-20 pb-8">
+            <div className="fixed top-20 left-6 z-[70]">
+              <Link
+                href="/#portfolio"
+                className="inline-flex items-center gap-1 text-[12px] text-[#2c2a29]/20 hover:text-[#c69c3d] transition-colors"
+              >
+                <Undo2 size={18} />
+                Back to home
+              </Link>
+            </div>
+
+            <div className="space-y-4 p-4 pt-16">
+              {selectedProject.images
+                .slice(0, mobileModalImageCount)
+                .map((img, i) => (
+                  <div
+                    key={i}
+                    className="relative w-full aspect-[16/9] cursor-pointer"
+                    onClick={() => openLightbox(i)}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${selectedProject.title} - ${i + 1}`}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                  </div>
+                ))}
+
+              {selectedProject.images.length > 3 && (
+                <button
+                  onClick={() => {
+                    if (mobileModalImageCount === 3) {
+                      setMobileModalImageCount(selectedProject.images.length);
+                    } else {
+                      setMobileModalImageCount(3);
+                    }
+                  }}
+                  className="w-full py-3 text-sm border border-gray-200 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-[#c69c3d] hover:text-[#c69c3d]"
+                  style={{ color: "#2c2a29" }}
+                >
+                  <span>
+                    {mobileModalImageCount === 3
+                      ? `Show ${selectedProject.images.length - 3} more pictures`
+                      : "Show less pictures"}
+                  </span>
+                  {mobileModalImageCount === 3 ? (
+                    <ChevronDown
+                      size={16}
+                      className="transition-transform group-hover:translate-y-0.5"
+                    />
+                  ) : (
+                    <ChevronUp
+                      size={16}
+                      className="transition-transform group-hover:-translate-y-0.5"
+                    />
+                  )}
+                </button>
+              )}
+            </div>
+
+            <div className="px-4 mt-6">
+              <div className="space-y-6">
+                <div>
+                  <h2
+                    className="text-xl font-light tracking-tight mb-2"
+                    style={{ color: "#2c2a29" }}
+                  >
+                    {selectedProject.title}
+                  </h2>
+                  <div
+                    className="w-12 h-[2px]"
+                    style={{ backgroundColor: "#c69c3d" }}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-500 w-20 inline-block">
+                      Location
+                    </span>
+                    <span style={{ color: "#2c2a29" }}>
+                      {selectedProject.location}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-500 w-20 inline-block">
+                      Year
+                    </span>
+                    <span style={{ color: "#2c2a29" }}>
+                      {selectedProject.year}
+                    </span>
+                  </div>
+                  {selectedProject.client && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Client
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.client}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-500 w-20 inline-block">
+                      Category
+                    </span>
+                    <span style={{ color: "#2c2a29" }}>
+                      {selectedProject.category}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedProject.scope && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-500 w-20 inline-block">
+                      Scope
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.scope.map((item, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs px-3 py-1.5"
+                          style={{
+                            backgroundColor: "#f2f1f0",
+                            color: "#2c2a29",
+                          }}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProject.story && (
+                  <div className="text-justify">
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: "#2c2a29" }}
+                    >
+                      {selectedProject.story}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* ================= LIGHTBOX ================= */}
+      {lightboxOpen && selectedProject && (
+        <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center">
+          <button
+            onClick={closeLightbox}
+            className="absolute top-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+
+          <button
+            onClick={prevImage}
+            className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Previous"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <button
+            onClick={nextImage}
+            className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Next"
+          >
+            <ChevronRight size={18} />
+          </button>
+
+          <div className="relative w-full h-full max-w-7xl max-h-[90vh] mx-auto p-4">
+            <div className="relative w-full h-full">
+              <Image
+                src={selectedProject.images[lightboxIndex]}
+                alt={`${selectedProject.title} - Image ${lightboxIndex + 1}`}
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-4 py-2 text-white text-sm rounded-full">
+              {lightboxIndex + 1} / {selectedProject.images.length}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS untuk hide scrollbar */}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 }

@@ -32,9 +32,6 @@ export default function WhatsappCTA({ cmsData }: { cmsData: any }) {
       <span className="text-sm font-medium hidden sm:inline">
         {label}
       </span>
-
-      {/* Pulse effect */}
-      <span className="absolute inset-0 rounded-full animate-ping bg-havia-gold opacity-20"></span>
     </a>
   );
 }

@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
-export default function Header({ cmsData }: { cmsData: any }) {
+export default function Header({ cmsData }: { cmsData?: any }) {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,69 +18,86 @@ export default function Header({ cmsData }: { cmsData: any }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const menuItems = [
+    { label: "About", href: "#about" },
+    { label: "Projects", href: "#portfolio" },
+    { label: "Client", href: "#trust" },
+    { label: "Contact", href: "#contact" },
+  ];
+
   return (
-    <>
-      <header className="fixed top-6 left-0 w-full z-50 flex justify-center px-6">
-        <div
-          className={`transition-all duration-500 rounded-full border 
-          ${scrolled 
-            ? "w-full max-w-5xl bg-black/60 backdrop-blur-3xl border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.4)]" 
-            : "w-full max-w-3xl bg-white/10 backdrop-blur-xl border-white/20"}`}
-        >
-          <nav
-            className={`flex items-center justify-between transition-all duration-500
-            ${scrolled ? "px-5 py-2.5" : "px-4 py-2.5"}`}
-          >
-            {/* Logo */}
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-white backdrop-blur-md shadow-sm"
+          : "bg-transparent"
+      } h-16`}
+    >
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+
+        {/* LOGO */}
+        <a href="/" className="relative w-20 h-6">
+          <Image
+            src="/logo-havia-primary-black.png"
+            alt="Havia Studio"
+            fill
+            className="object-contain"
+          />
+        </a>
+
+        {/* DESKTOP NAV */}
+        <nav className="hidden md:flex items-center gap-7">
+          {menuItems.map((item) => (
             <a
-              href="#hero"
-              className={`relative transition-all duration-500 
-              ${scrolled ? "w-[120px] h-[32px]" : "w-[105px] h-[26px]"}`}
+              key={item.label}
+              href={item.href}
+              onMouseEnter={() => setHoveredLink(item.label)}
+              onMouseLeave={() => setHoveredLink(null)}
+              className="relative text-[12px] tracking-[0.2em] text-[#2c2a29]/80 hover:text-[#2c2a29] transition-colors"
             >
-              <Image
-                src="/logo-havia-primary-white.png"
-                alt="Havia Studio Logo"
-                fill
-                priority
-                className="object-contain"
+              {item.label}
+
+              <span
+                className={`absolute -bottom-1 left-0 h-[1px] bg-havia-gold transition-all duration-300 ${
+                  hoveredLink === item.label ? "w-full" : "w-0"
+                }`}
               />
             </a>
+          ))}
+        </nav>
 
-            {/* Desktop Menu */}
-            <ul
-              className={`hidden md:flex items-center uppercase tracking-[0.2em] text-white transition-all duration-500
-              ${scrolled ? "gap-10 text-xs" : "gap-8 text-[11px]"}`}
+        {/* MOBILE BUTTON */}
+        <button
+          className="md:hidden text-[#2c2a29]"
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+      </div>
+
+      {/* MOBILE MENU */}
+      <div
+        className={`md:hidden transition-all duration-500 overflow-hidden ${
+          mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="bg-havia-offwhite px-6 pt-6 pb-8 flex flex-col gap-6 border-t border-[#2c2a29]/10">
+
+          {menuItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className="text-sm uppercase tracking-[0.2em] text-[#2c2a29]"
             >
-              <li><a href="#about" className="hover:text-[var(--havia-gold)] transition">About</a></li>
-              <li><a href="#portfolio" className="hover:text-[var(--havia-gold)] transition">Portfolio</a></li>
-              <li><a href="#trust" className="hover:text-[var(--havia-gold)] transition">Testimonial</a></li>
-              <li><a href="#contact" className="hover:text-[var(--havia-gold)] transition">Contact</a></li>
-            </ul>
+              {item.label}
+            </a>
+          ))}
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-white"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </nav>
         </div>
-      </header>
+      </div>
 
-      {/* Mobile Menu Dropdown */}
-      {menuOpen && (
-        <div className="fixed top-24 left-0 w-full flex justify-center z-40 px-6 md:hidden">
-          <div className="w-full max-w-md rounded-2xl bg-black/70 backdrop-blur-2xl border border-white/10 p-6 shadow-xl">
-            <ul className="flex flex-col items-center gap-6 uppercase tracking-[0.2em] text-white text-sm">
-              <li><a href="#about" onClick={()=>setMenuOpen(false)}>About</a></li>
-              <li><a href="#portfolio" onClick={()=>setMenuOpen(false)}>Portfolio</a></li>
-              <li><a href="#trust" onClick={()=>setMenuOpen(false)}>Testimonial</a></li>
-              <li><a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a></li>
-            </ul>
-          </div>
-        </div>
-      )}
-    </>
+    </header>
   );
 }
