@@ -1,12 +1,15 @@
 import "./globals.css";
 import { Work_Sans } from "next/font/google";
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 
 const workSans = Work_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
 });
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Havia Studio | Architecture, Interior & Masterplan Design Studio",
@@ -63,8 +66,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={workSans.variable}>
-      <body className="overflow-x-hidden">{children}</body>
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+      </body>
     </html>
   );
 }

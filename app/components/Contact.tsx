@@ -23,8 +23,8 @@ export default function Contact({ cmsData }: { cmsData: any }) {
   const waPhone = phone.replace(/[\s\-\+]/g, "");
 
   return (
-    <section id="contact" className="bg-black text-white pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-8">
+    <section id="contact" className="bg-black text-white py-12">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Top Grid */}
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1.6fr_0.6fr_1.2fr]">
           {/* Brand */}
@@ -33,8 +33,8 @@ export default function Contact({ cmsData }: { cmsData: any }) {
               <Image
                 src="/logo-havia-primary-white.png"
                 alt="Havia Studio Logo"
-                width={140}
-                height={36}
+                width={120}
+                height={30}
                 className="object-contain"
               />
             </div>
