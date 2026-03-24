@@ -304,13 +304,13 @@ export default function AboutDetail() {
               onClick={() => openMember(member, index)}
             >
               {/* IMAGE - hidden by default */}
-              <div className="overflow-hidden transition-all duration-500 max-h-0 group-hover:max-h-[300px] mb-0 group-hover:mb-3">
+              <div className="overflow-hidden transition-all duration-500 max-h-[300px] mb-3 md:max-h-0 md:mb-0 md:group-hover:max-h-[300px] md:group-hover:mb-3">
                 <div className="relative aspect-square bg-[#2c2a29]/5">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover grayscale contrast-75 group-hover:grayscale-0 group-hover:contrast-100 transition-all duration-700"
+                    className="object-cover md:grayscale md:contrast-75 md:group-hover:grayscale-0 md:group-hover:contrast-100 transition-all duration-700"
                   />
                 </div>
               </div>
@@ -436,7 +436,7 @@ export default function AboutDetail() {
                   alt={img.caption}
                   width={500}
                   height={500}
-                  className="object-cover grayscale contrast-75 group-hover:grayscale-0 group-hover:contrast-100 transition-all duration-700"
+                  className="object-cover md:grayscale md:contrast-75 md:group-hover:grayscale-0 md:group-hover:contrast-100 transition-all duration-700"
                 />
               </div>
             </motion.div>

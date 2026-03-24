@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 
 type Testimonial = {
   id: number;
@@ -127,6 +127,17 @@ export default function Trust({ cmsData }: { cmsData: any }) {
     return distance;
   };
 
+  // SWIPE HANDLER
+  const dragX = useMotionValue(0);
+  const onDragEnd = (e: any, { offset, velocity }: any) => {
+    const swipeThreshold = 50;
+    if (offset.x > swipeThreshold) {
+      prevSlide();
+    } else if (offset.x < -swipeThreshold) {
+      nextSlide();
+    }
+  };
+
   return (
     <section id="trust" className="py-12 md:py-16 bg-[#f2f1f0]">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
@@ -144,32 +155,30 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           <div className="w-12 h-[2px] bg-[#c69c3d]/50 mt-2" />
         </motion.div>
 
-        {/* FILTER */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div className="flex flex-wrap gap-2 md:gap-6">
+        {/* FILTER - Modern Toggle Style */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex p-1 bg-white border border-[#2c2a29]/10 rounded-full shadow-sm">
             <button
               onClick={() => setFilterType("corporate")}
-              className={`relative px-3 py-2 text-sm transition-all duration-300 ${
-                filterType === "corporate"
-                  ? "font-medium after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#2c2a29]"
-                  : "hover:text-gray-600"
-              }`}
-              style={{
-                color: filterType === "corporate" ? "#2c2a29" : "#9ca3af",
-              }}
+              className={`
+                relative px-6 py-2 text-xs md:text-sm tracking-wider uppercase transition-all duration-300 rounded-full
+                ${filterType === "corporate" 
+                  ? "bg-[#2c2a29] text-white shadow-md" 
+                  : "text-[#2c2a29]/50 hover:text-[#2c2a29]"
+                }
+              `}
             >
               Corporate ({testimonials.filter(t => t.type === "corporate").length})
             </button>
             <button
               onClick={() => setFilterType("personal")}
-              className={`relative px-3 py-2 text-sm transition-all duration-300 ${
-                filterType === "personal"
-                  ? "font-medium after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#2c2a29]"
-                  : "hover:text-gray-600"
-              }`}
-              style={{
-                color: filterType === "personal" ? "#2c2a29" : "#9ca3af",
-              }}
+              className={`
+                relative px-6 py-2 text-xs md:text-sm tracking-wider uppercase transition-all duration-300 rounded-full
+                ${filterType === "personal" 
+                  ? "bg-[#2c2a29] text-white shadow-md" 
+                  : "text-[#2c2a29]/50 hover:text-[#2c2a29]"
+                }
+              `}
             >
               Personal ({testimonials.filter(t => t.type === "personal").length})
             </button>
@@ -224,26 +233,42 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           )}
 
           {/* Carousel Container */}
-          <div className="relative h-[300px] md:h-[300px] flex items-center justify-center overflow-visible">
+          <div className="relative min-h-[380px] md:min-h-[400px] flex items-center justify-center overflow-visible">
+            
+            {/* Background Accent */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+               <div className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] border border-[#2c2a29] rounded-full animate-spin-slow" />
+               <div className="absolute w-[250px] h-[250px] md:w-[450px] md:h-[450px] border border-[#2c2a29] rounded-full animate-spin-reverse opacity-50" />
+            </div>
+
             <AnimatePresence initial={false} custom={direction}>
               {filteredTestimonials.map((item, idx) => {
                 const position = getCardPosition(idx);
                 
-                // Hanya tampilkan card yang visible (jarak -2 sampai 2)
-                if (Math.abs(position) > 2) return null;
+                // Tampilkan card yang visible
+                if (!isMobile && Math.abs(position) > 2) return null;
+                if (isMobile && position !== 0) return null; // Only active card on mobile for cleaner look
                 
                 return (
                   <motion.div
                     key={item.id}
                     custom={direction}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragEnd={onDragEnd}
                     initial={{ 
                       x: position > 0 ? '150%' : '-150%',
+                      y: 20,
                       opacity: 0,
                       scale: 0.7,
                       filter: 'blur(8px)'
                     }}
+                    whileInView={{ y: 0, opacity: position === 0 ? 1 : 0.3 }}
+                    viewport={{ once: true, margin: "-100px" }}
                     animate={{ 
-                      x: position === 0 ? '0%' : position === 1 ? '120%' : position === -1 ? '-120%' : position === 2 ? '240%' : '-240%',
+                      x: isMobile 
+                        ? '0%' 
+                        : position === 0 ? '0%' : position === 1 ? '110%' : position === -1 ? '-110%' : position === 2 ? '220%' : '-220%',
                       opacity: position === 0 ? 1 : 0.3,
                       scale: position === 0 ? 1 : 0.8,
                       filter: position === 0 ? 'blur(0px)' : 'blur(4px)',
@@ -257,58 +282,72 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                     }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 300,
-                      damping: 30,
-                      duration: 0.5
+                      stiffness: 260,
+                      damping: 25,
                     }}
                     onClick={() => {
                       if (position !== 0) {
-                        if (position === -1 || position === 1) {
-                          if (position === -1) {
-                            setDirection(-1);
-                            setCurrentIndex(idx);
-                          } else {
-                            setDirection(1);
-                            setCurrentIndex(idx);
-                          }
-                        }
+                        setCurrentIndex(idx);
+                        setDirection(position > 0 ? 1 : -1);
                       }
                     }}
-                    className="absolute w-[90%] md:w-[380px] cursor-pointer"
+                    className="absolute w-[88%] md:w-[400px] cursor-grab active:cursor-grabbing"
                   >
                     <div
                       className={`
-                        bg-white p-5 md:p-6 flex flex-col gap-3 h-full
-                        transition-all duration-300 rounded-lg
-                        ${position === 0 ? 'shadow-2xl' : 'shadow-md'}
+                        relative bg-white p-7 md:p-10 flex flex-col gap-5 h-full
+                        transition-all duration-500 rounded-2xl overflow-hidden
+                        ${position === 0 
+                          ? 'shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-b-4 border-[#c69c3d]/30' 
+                          : 'shadow-md border border-black/5'
+                        }
                       `}
                     >
-                      {/* Logo */}
-                      <div className="relative w-14 h-14 md:w-16 md:h-16">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className={`object-contain transition-all duration-500 ${
-                            position !== 0 ? 'grayscale opacity-50' : ''
-                          }`}
-                        />
+                      {/* Background Quote Icon */}
+                      <Quote 
+                        className="absolute top-6 right-6 text-[#c69c3d]/5 pointer-events-none" 
+                        size={120} 
+                        strokeWidth={0.5} 
+                      />
+
+                      {/* Header Card */}
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className={`object-contain transition-all duration-500 rounded-lg ${
+                              position !== 0 ? 'grayscale opacity-30' : ''
+                            }`}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[#2c2a29]">
+                            {item.name}
+                          </p>
+                          <p className="text-[10px] md:text-xs text-[#c69c3d] mt-0.5 tracking-wider font-medium">
+                            {item.role}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Quote */}
-                      <p className="text-xs md:text-sm italic text-[#2c2a29] leading-relaxed">
-                        “{item.quote}”
-                      </p>
-
-                      {/* Name & Role */}
-                      <div className="mt-1">
-                        <p className="text-xs uppercase tracking-wider font-medium text-[#2c2a29]">
-                          {item.name}
-                        </p>
-                        <p className="text-xs text-[#2c2a29]/60 mt-0.5">
-                          {item.role}
+                      <div className="relative">
+                        <Quote className="text-[#c69c3d]/20 mb-2" size={18} fill="currentColor" />
+                        <p className="text-sm md:text-base italic text-[#2c2a29]/80 leading-relaxed font-light">
+                          {item.quote}
                         </p>
                       </div>
+
+                      {/* Footer accent */}
+                      {position === 0 && (
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: '40px' }}
+                          className="h-[1px] bg-[#c69c3d]/40 mt-2"
+                        />
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -320,19 +359,21 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           {filteredTestimonials.length > 0 && (
             <div className="flex justify-center gap-2 mt-4">
               {filteredTestimonials.map((_, index) => (
-                <button
+                <div
                   key={index}
                   onClick={() => {
                     setDirection(index > currentIndex ? 1 : -1);
                     setCurrentIndex(index);
                   }}
                   className={`
-                    w-1.5 h-1.5 rounded-full transition-all duration-300
-                    ${currentIndex === index 
-                      ? 'w-5 bg-[#c69c3d]' 
-                      : 'bg-[#2c2a29]/20 hover:bg-[#2c2a29]/40'
-                    }
+                    rounded-full transition-all duration-300 p-0 border-0 min-w-0 min-h-0 overflow-hidden cursor-pointer
+                    ${currentIndex === index ? 'bg-[#c69c3d]' : 'bg-[#2c2a29]/20 hover:bg-[#2c2a29]/40'}
                   `}
+                  style={{
+                    width: (currentIndex === index ? (isMobile ? 12 : 20) : 6) + 'px',
+                    height: (isMobile ? 6 : 6) + 'px',
+                    flexShrink: 0,
+                  }}
                 />
               ))}
             </div>
