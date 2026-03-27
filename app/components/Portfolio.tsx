@@ -5,15 +5,20 @@ import Image from "next/image";
 import {
   X,
   Undo2,
-  ArrowRight,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
+  SlidersHorizontal,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Header from "../components/Header";
-import Link from "next/link";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 type Project = {
   id: number;
@@ -155,15 +160,19 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [mobileModalImageCount, setMobileModalImageCount] = useState(3);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const portfolioRef = useRef<HTMLElement | null>(null);
+  const gridContainerRef = useRef<HTMLDivElement | null>(null);
+  const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const modalContentRef = useRef<HTMLDivElement | null>(null);
+  const filterButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const scrollTriggersRef = useRef<ScrollTrigger[]>([]);
 
-  // CMS Data
   const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
-  // Use CMS projects if available, otherwise use static (ambil 9 project pertama)
   const projects: Project[] =
     cmsData?.landingpage_portfolio_json &&
     Array.isArray(cmsData.landingpage_portfolio_json) &&
@@ -180,22 +189,114 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     "Masterplan",
   ];
 
+  useEffect(() => {
+    const storedCategory = sessionStorage.getItem("selectedCategory");
+    if (storedCategory && categories.includes(storedCategory)) {
+      setActiveCategory(storedCategory);
+      sessionStorage.removeItem("selectedCategory");
+    }
+
+    const handleFilter = (e: CustomEvent) => {
+      const { category } = e.detail;
+      if (category && categories.includes(category)) {
+        setActiveCategory(category);
+      } else if (category === null) {
+        setActiveCategory("All");
+      }
+    };
+
+    window.addEventListener("filterProjects" as any, handleFilter);
+    return () =>
+      window.removeEventListener("filterProjects" as any, handleFilter);
+  }, [categories]);
+
   const filtered =
     activeCategory === "All"
       ? projects
       : projects.filter((p) => p.category === activeCategory);
 
-  // Batasi hanya 9 card
   const displayProjects = filtered.slice(0, 9);
 
-  // ================= SCROLL SPY WITH SMOOTH TRANSITION =================
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        filterButtonRef.current &&
+        !filterButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowFilterDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    scrollTriggersRef.current.forEach((st) => st.kill());
+    scrollTriggersRef.current = [];
+
+    if (!gridContainerRef.current) return;
+
+    const items = gridItemsRef.current.filter((item) => item !== null);
+    if (items.length === 0) return;
+
+    const animation = gsap.fromTo(
+      items,
+      { autoAlpha: 0, y: 40 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: gridContainerRef.current,
+          start: "top 80%",
+          end: "bottom 20%",
+          toggleActions: "play none none reverse",
+        },
+      },
+    );
+
+    if (animation.scrollTrigger) {
+      scrollTriggersRef.current.push(animation.scrollTrigger);
+    }
+
+    const headerLine = portfolioRef.current?.querySelector(".header-line");
+    if (headerLine) {
+      const headerTrigger = ScrollTrigger.create({
+        trigger: portfolioRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          gsap.fromTo(
+            headerLine,
+            { width: 0 },
+            { width: "3rem", duration: 0.8, ease: "power2.out" },
+          );
+        },
+        onEnterBack: () => {
+          gsap.fromTo(
+            headerLine,
+            { width: 0 },
+            { width: "3rem", duration: 0.8, ease: "power2.out" },
+          );
+        },
+      });
+      scrollTriggersRef.current.push(headerTrigger);
+    }
+
+    return () => {
+      scrollTriggersRef.current.forEach((st) => st.kill());
+      scrollTriggersRef.current = [];
+    };
+  }, [activeCategory, displayProjects]);
+
   useEffect(() => {
     if (!selectedProject) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (isScrolling) return;
-
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = Number(entry.target.getAttribute("data-index"));
@@ -205,11 +306,9 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       },
       { threshold: 0.7 },
     );
-
     imageRefs.current.forEach((el) => {
       if (el) observer.observe(el);
     });
-
     return () => {
       imageRefs.current.forEach((el) => {
         if (el) observer.unobserve(el);
@@ -220,50 +319,42 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   const scrollToImage = (index: number) => {
     if (!imageRefs.current[index] || !modalContentRef.current) return;
-
     setActiveImage(index);
-
     const container = modalContentRef.current;
     const element = imageRefs.current[index];
-
     if (element) {
       const elementPosition = element.offsetTop;
       const containerHeight = container.clientHeight;
       const elementHeight = element.clientHeight;
-
       const scrollTo =
         elementPosition - containerHeight / 2 + elementHeight / 2;
-
       const startPosition = container.scrollTop;
       const distance = scrollTo - startPosition;
       const duration = 600;
       let startTime: number | null = null;
-
       const animation = (currentTime: number) => {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-
         const ease = (t: number) =>
           t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
         container.scrollTop = startPosition + distance * ease(progress);
-
         if (timeElapsed < duration) {
           requestAnimationFrame(animation);
         } else {
           setIsScrolling(false);
         }
       };
-
       setIsScrolling(true);
       requestAnimationFrame(animation);
     }
   };
 
-  const setImageRef = (index: number) => (el: HTMLDivElement | null) => {
-    imageRefs.current[index] = el;
-  };
+  const setImageRef =
+    (index: number) =>
+    (el: HTMLDivElement | null): void => {
+      imageRefs.current[index] = el;
+    };
 
   useEffect(() => {
     setMobileModalImageCount(3);
@@ -293,7 +384,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       );
     }
   };
-  
+
   const closeModal = () => {
     setSelectedProject(null);
     setLightboxOpen(false);
@@ -303,140 +394,216 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     <section
       ref={portfolioRef}
       id="portfolio"
-      className="py-16 md:py-20"
-      style={{ backgroundColor: "#f2f1f0" }}
+      className="md:pt-16 pb-16 md:pb-20 font-sans"
+      style={{ backgroundColor: "var(--havia-offwhite)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* HEADER */}
-        <div className="mb-8 md:mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-8"
-          >
-            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[#2c2a29]">
-              {h2}
-            </h2>
-            <div className="w-12 h-[2px] bg-[#c69c3d]/50 mt-2" />
-          </motion.div>
+        {/* Desktop Layout */}
+        <div className="hidden md:flex gap-12 lg:gap-16">
+          <div className="w-64 flex-shrink-0">
+            <div className="sticky top-24">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">
+                  {h2}
+                </h2>
+                <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mb-8" />
+              </motion.div>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            {/* FILTER - Clean minimal design */}
-            <div className="flex flex-wrap gap-2 md:gap-6">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`relative px-3 py-2 text-sm transition-all duration-300 ${
-                    activeCategory === cat
-                      ? "font-medium after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#2c2a29]"
-                      : "hover:text-gray-600"
-                  }`}
-                  style={{
-                    color: activeCategory === cat ? "#2c2a29" : "#9ca3af",
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">
+                    CATEGORY
+                  </h3>
+                  <div className="flex flex-col space-y-2">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`
+                          relative text-sm transition-all duration-300 text-left
+                          ${
+                            activeCategory === cat
+                              ? "text-[var(--havia-charcoal)] font-semibold border-l-2 border-[var(--havia-gold)] pl-3"
+                              : "text-gray-400 hover:text-gray-600 pl-4"
+                          }
+                        `}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <div
+              ref={gridContainerRef}
+              className="grid grid-cols-3 gap-8 min-h-[600px] lg:min-h-[700px]"
+            >
+              {displayProjects.map((project, idx) => (
+                <div
+                  key={project.id}
+                  ref={(el) => {
+                    gridItemsRef.current[idx] = el;
                   }}
+                  onClick={() => {
+                    setSelectedProject(project);
+                    setActiveImage(0);
+                  }}
+                  className="group cursor-pointer"
                 >
-                  {cat}
-                </button>
+                  <div
+                    className="relative aspect-[4/3] overflow-hidden mb-3"
+                    style={{ backgroundColor: "var(--havia-offwhite)" }}
+                  >
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                    />
+                  </div>
+                  <h3 className="text-sm font-medium text-[var(--havia-charcoal)] tracking-wide mb-1">
+                    {project.title}
+                  </h3>
+                  <div className="flex justify-between items-baseline text-xs text-gray-400">
+                    <span>{project.location}</span>
+                    <span>{project.year}</span>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* GRID - Desktop (3x3 = 9 card) */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {displayProjects.map((project) => (
-            <div
-              key={project.id}
-              onClick={() => {
-                setSelectedProject(project);
-                setActiveImage(0);
-              }}
-              className="group cursor-pointer relative"
+        {/* Mobile Layout */}
+        <div className="md:hidden">
+          <div className="flex justify-between items-center mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <div
-                className="relative aspect-[5/3] overflow-hidden"
-                style={{ backgroundColor: "#f2f1f0" }}
-              >
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-500" />
+              <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)]">
+                {h2}
+              </h2>
+              <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-2" />
+            </motion.div>
 
-                {/* HOVER OVERLAY - slide up */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                  <div className="bg-white/90 backdrop-blur-sm py-3 px-4">
-                    <p className="text-xs uppercase tracking-wider text-[#2c2a29] text-center">
-                      {project.title}
-                    </p>
-                    <p className="text-[10px] font-light text-[#2c2a29]/60 text-center">
-                      {project.location}
-                    </p>
-                  </div>
+            <button
+              ref={filterButtonRef}
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="p-2"
+              aria-label="Open filter"
+            >
+              <SlidersHorizontal
+                size={20}
+                className="text-[var(--havia-charcoal)]"
+              />
+            </button>
+          </div>
+
+          {showFilterDropdown && (
+            <div
+              ref={dropdownRef}
+              className="w-full mb-6"
+              style={{ backgroundColor: "var(--havia-offwhite)" }}
+            >
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="space-y-2">
+                  {categories.slice(0, 3).map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`
+                block w-full text-left text-sm transition-colors duration-300
+                ${
+                  activeCategory === cat
+                    ? "text-[var(--havia-charcoal)] font-semibold"
+                    : "text-gray-400 hover:text-gray-600"
+                }
+              `}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  {categories.slice(3).map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`
+                block w-full text-left text-sm transition-colors duration-300
+                ${
+                  activeCategory === cat
+                    ? "text-[var(--havia-charcoal)] font-semibold"
+                    : "text-gray-400 hover:text-gray-600"
+                }
+              `}
+                    >
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* GRID - Mobile (2 kolom x 5 baris = 10, tapi hanya 9 card) */}
-        <div className="grid grid-cols-2 gap-3 md:hidden">
-          {displayProjects.map((project) => (
-            <div
-              key={project.id}
-              onClick={() => {
-                setSelectedProject(project);
-                setActiveImage(0);
-              }}
-              className="group cursor-pointer relative"
-            >
+          )}
+          <div className="grid grid-cols-1 gap-6 min-h-[400px]">
+            {displayProjects.map((project) => (
               <div
-                className="relative aspect-[5/3] overflow-hidden"
-                style={{ backgroundColor: "#f2f1f0" }}
+                key={project.id}
+                onClick={() => {
+                  setSelectedProject(project);
+                  setActiveImage(0);
+                }}
+                className="group cursor-pointer"
               >
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
-                  sizes="(max-width: 768px) 50vw"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-500" />
-
-                {/* HOVER OVERLAY - muncul saat hover */}
-                <div className="absolute inset-0 flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <p className="text-[10px] text-white/80 mb-0.5 truncate">
-                    {project.location}
-                  </p>
-                  <p className="text-xs font-medium text-white truncate">
-                    {project.title}
-                  </p>
+                <div
+                  className="relative aspect-[4/3] overflow-hidden mb-2"
+                  style={{ backgroundColor: "var(--havia-offwhite)" }}
+                >
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                    sizes="(max-width: 768px) 100vw"
+                  />
+                </div>
+                <h3 className="text-sm font-medium text-[var(--havia-charcoal)] truncate mb-1">
+                  {project.title}
+                </h3>
+                <div className="flex justify-between items-baseline text-xs text-gray-400">
+                  <span className="truncate">{project.location}</span>
+                  <span className="ml-2 flex-shrink-0">{project.year}</span>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ================= MODAL PROJECT ================= */}
+      {/* MODAL and LIGHTBOX*/}
       {selectedProject && (
         <div
-          className="fixed inset-0 z-50 overflow-hidden"
+          className="fixed inset-0 z-50 overflow-hidden font-sans"
           style={{ backgroundColor: "#ffffff" }}
         >
-          {/* Header - Fixed di atas */}
-          <div className="absolute top-0 left-0 right-0 z-[70]">
+          <div className="absolute top-0 left-0 right-0 z-[70] hidden lg:block">
             <Header />
           </div>
 
-          {/* Back to home button */}
-          <div className="absolute top-20 left-6 z-[70]">
+          <div className="fixed top-20 left-6 z-[70]">
             <div className="max-w-7xl">
               <button
                 onClick={closeModal}
@@ -450,7 +617,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
           {/* Desktop Layout */}
           <div className="hidden lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
-            {/* THUMBNAIL SIDEBAR */}
             <div
               className="flex flex-col justify-center overflow-y-auto p-4 scrollbar-hide"
               style={{ backgroundColor: "#ffffff" }}
@@ -483,7 +649,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
               </div>
             </div>
 
-            {/* MAIN IMAGE SCROLL */}
             <div
               ref={modalContentRef}
               className="overflow-y-auto scroll-smooth px-10 py-10 space-y-10 scrollbar-hide justify-items-center"
@@ -507,7 +672,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
               ))}
             </div>
 
-            {/* INFO PANEL - Desktop */}
             <div
               className="overflow-y-auto p-8 scrollbar-hide"
               style={{ backgroundColor: "#ffffff" }}
@@ -595,18 +759,14 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
           </div>
 
           {/* Mobile Layout */}
-          <div className="lg:hidden h-full overflow-y-auto pt-20 pb-8">
-            <div className="fixed top-20 left-6 z-[70]">
-              <Link
-                href="/#portfolio"
-                className="inline-flex items-center gap-1 text-[12px] text-[#2c2a29]/20 hover:text-[#c69c3d] transition-colors"
-              >
-                <Undo2 size={18} />
-                Back to home
-              </Link>
+          <div className="lg:hidden h-full overflow-y-auto pb-8">
+            <div className="h-20" />
+
+            <div className="px-4">
+              <Header />
             </div>
 
-            <div className="space-y-4 p-4 pt-16">
+            <div className="space-y-4 p-4 pt-6">
               {selectedProject.images
                 .slice(0, mobileModalImageCount)
                 .map((img, i) => (
@@ -656,6 +816,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
               )}
             </div>
 
+            {/* Project details */}
             <div className="px-4 mt-6">
               <div className="space-y-6">
                 <div>
@@ -746,7 +907,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
         </div>
       )}
 
-      {/* ================= LIGHTBOX ================= */}
       {lightboxOpen && selectedProject && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center">
           <button
@@ -789,17 +949,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
           </div>
         </div>
       )}
-
-      {/* CSS untuk hide scrollbar */}
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </section>
   );
 }

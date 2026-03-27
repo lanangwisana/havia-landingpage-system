@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useInView } from "framer-motion";
-import { Users, ArrowRight } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ArrowRight } from "lucide-react";
 
-// Counter (TETAP)
+gsap.registerPlugin(ScrollTrigger);
+
 const Counter = ({
   value,
   duration = 2000,
@@ -15,253 +17,282 @@ const Counter = ({
   duration?: number;
 }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const increment = value / (duration / 16);
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= value) {
-          setCount(value);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-
-      return () => clearInterval(timer);
-    }
-  }, [isInView, value, duration]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            let start = 0;
+            const increment = value / (duration / 16);
+            const timer = setInterval(() => {
+              start += increment;
+              if (start >= value) {
+                setCount(value);
+                clearInterval(timer);
+              } else {
+                setCount(Math.floor(start));
+              }
+            }, 16);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [value, duration]);
 
   return <span ref={ref}>{count}+</span>;
 };
 
 export default function About({ cmsData }: { cmsData: any }) {
-  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // ================= CMS DATA =================
-  const accent =
-    cmsData?.landingpage_about_accent || "About";
-
+  const accent = cmsData?.landingpage_about_accent || "About Havia";
   const p1 =
     cmsData?.landingpage_about_p1 ||
-    "Halo! Kami Havia Studio. Studio Arsitektur yang hadir untuk membantu anda mewujudkan desain bangunan terbaik sesuai kebutuhan anda melalui kolaborasi dalam pelaksanaannya.";
-
+    "Halo! Kami Havia Studio. Studio Arsitektur yang hadir untuk membantu anda mewujudkan desain bangunan terbaik melalui kolaborasi yang mendalam.";
   const p2 =
     cmsData?.landingpage_about_p2 ||
-    "Dengan pengalaman hampir 10 tahun di dunia rancang bangun, kami semakin yakin untuk bisa membantu lebih banyak visi menjadi nyata. Setiap proyek adalah dialog antara ruang, material, dan lingkungan.";
+    "Dengan pengalaman hampir 10 tahun di dunia rancang bangun, kami percaya setiap proyek adalah dialog antara ruang, material, dan lingkungan.";
 
-  const stat1ValRaw =
-    cmsData?.landingpage_about_stat1_val || "120+";
-
+  const stat1ValRaw = cmsData?.landingpage_about_stat1_val || "120+";
   const stat1Label =
-    cmsData?.landingpage_about_stat1_label ||
-    "Projects Completed";
-
-  const stat2ValRaw =
-    cmsData?.landingpage_about_stat2_val || "10";
-
+    cmsData?.landingpage_about_stat1_label || "Projects Completed";
+  const stat2ValRaw = cmsData?.landingpage_about_stat2_val || "10";
   const stat2Label =
-    cmsData?.landingpage_about_stat2_label ||
-    "Years of Practice";
+    cmsData?.landingpage_about_stat2_label || "Years of Practice";
 
-  // convert string → number buat counter
   const stat1Val = parseInt(stat1ValRaw);
   const stat2Val = parseInt(stat2ValRaw);
 
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+    };
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    window.addEventListener("mousemove", move);
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("mousemove", move);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    ScrollTrigger.getAll().forEach((st) => {
+      if (st.vars.trigger === sectionRef.current) st.kill();
+    });
+
+    const ctx = gsap.context(() => {
+      gsap.set(
+        [
+          ".about-accent",
+          ".about-desc",
+          ".about-stats",
+          ".about-image",
+          ".about-cta",
+        ],
+        {
+          opacity: 0,
+        },
+      );
+      gsap.set(".about-accent", { y: 100 });
+      gsap.set(".about-accent-line", { width: 0 });
+      gsap.set(".about-desc", { y: 50 });
+      gsap.set(".about-stats", { y: 30 });
+      gsap.set(".about-image", { scale: 0.9, x: 50 });
+      gsap.set(".about-cta", { y: 20 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: isMobile ? "top 80%" : "top top",
+          end: isMobile ? "+=100%" : "+=400%",
+          scrub: isMobile ? 1 : 2,
+          pin: !isMobile,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      tl.to(".about-accent", {
+        opacity: 1,
+        y: 0,
+        duration: 1.5,
+        ease: "power2.out",
+      })
+        .to(
+          ".about-accent-line",
+          { width: 40, duration: 0.8, ease: "power2.out" },
+          "<",
+        )
+        .to(
+          ".about-desc",
+          { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-stats",
+          { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-image",
+          { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-cta",
+          { opacity: 1, y: 0, duration: 1, ease: "power2.out" },
+          "+=0.3",
+        );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [isMobile]);
+
   return (
     <section
+      ref={sectionRef}
       id="about"
-      className="relative pt-20 md:pt-20 pb-20 md:pb-20 bg-[#f2f1f0] overflow-hidden"
+      className="relative w-full bg-[var(--havia-charcoal)] text-[var(--havia-offwhite)] overflow-hidden font-sans"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        
-        {/* HEADER (UI TETAP, TEXT CMS) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[#2c2a29]">
-            {accent}
-          </h2>
-          <div className="w-12 h-[2px] bg-[#c69c3d]/50 mt-2" />
-        </motion.div>
-
-        {/* DESKTOP */}
-        <div className="hidden lg:grid lg:grid-cols-2 gap-12 lg:gap-16">
-          
-          {/* TEXT */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
-          >
-
-            {/* PARAGRAF */}
-            <div className="space-y-4 text-[#2c2a29]/60">
-              <p className="text-sm leading-relaxed text-justify">{p1}</p>
-              <p className="text-sm leading-relaxed text-justify">{p2}</p>
+      <div className="max-w-7xl mx-auto px-6 md:px-6 py-12 md:py-20 min-h-screen flex flex-col justify-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <div>
+            <div className="about-accent">
+              <h2
+                className="text-3xl md:text-5xl font-light uppercase tracking-[2px]"
+                style={{ fontFamily: "'Helvetica', Helvetica, sans-serif" }}
+              >
+                {accent}
+              </h2>
+              <div className="about-accent-line h-px bg-[var(--havia-gold)] mt-2 md:mt-3" />
             </div>
 
-            {/* STATS */}
-            <div className="grid grid-cols-2 gap-8 pt-4">
+            <div className="about-desc mt-8 space-y-4">
+              <p className="text-sm md:text-base text-[var(--havia-offwhite)]/80 leading-relaxed font-sans">
+                {p1}
+              </p>
+              <p className="text-sm md:text-base text-[var(--havia-offwhite)]/60 leading-relaxed font-sans">
+                {p2}
+              </p>
+            </div>
+
+            <div className="about-stats mt-10 flex gap-12">
               <div>
-                <p className="text-3xl lg:text-4xl text-[#2c2a29] font-light">
+                <p
+                  className="text-3xl md:text-4xl font-light text-[var(--havia-gold)]"
+                  style={{
+                    fontFamily: "'Helvetica Neue', Helvetica, sans-serif",
+                  }}
+                >
                   <Counter value={stat1Val} />
                 </p>
-                <p className="text-[10px] text-[#2c2a29]/60 mt-2 tracking-wide">
+                <p className="text-xs tracking-widest text-[var(--havia-offwhite)]/50 mt-1 font-sans">
                   {stat1Label}
                 </p>
               </div>
-
               <div>
-                <p className="text-3xl lg:text-4xl text-[#2c2a29] font-light">
+                <p
+                  className="text-3xl md:text-4xl font-light text-[var(--havia-gold)]"
+                  style={{
+                    fontFamily: "'Helvetica Neue', Helvetica, sans-serif",
+                  }}
+                >
                   <Counter value={stat2Val} />
                 </p>
-                <p className="text-[10px] text-[#2c2a29]/60 mt-2 tracking-wide">
+                <p className="text-xs tracking-widest text-[var(--havia-offwhite)]/50 mt-1 font-sans">
                   {stat2Label}
                 </p>
               </div>
             </div>
 
-            {/* BUTTON */}
-            <div className="flex gap-8 pt-4">
+            <div className="about-cta mt-12 hidden lg:block">
               <Link
                 href="/about?tab=team"
-                className="group relative inline-flex items-center transition-all duration-300 rounded-lg"
-                onMouseEnter={() => setHoveredButton("team")}
-                onMouseLeave={() => setHoveredButton(null)}
+                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300"
               >
-                <span className="text-xs tracking-wider text-[#2c2a29]/60 group-hover:text-[#c69c3d] transition-colors">
+                <span className="text-xs uppercase tracking-wider font-sans">
                   View More
                 </span>
                 <ArrowRight
                   size={14}
-                  className="text-[#2c2a29]/60 group-hover:text-[#c69c3d] group-hover:translate-x-1 transition-all"
+                  className="transition-transform group-hover:translate-x-1"
                 />
-
-                {/* Tooltip */}
-                <span
-                  className={`absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#2c2a29] text-white text-xs py-2 px-3 transition-all duration-300 rounded ${
-                    hoveredButton === "team"
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-2 pointer-events-none"
-                  }`}
-                >
-                  Meet Our Team & Gallery
-                </span>
               </Link>
             </div>
-          </motion.div>
+          </div>
 
-          {/* IMAGE */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden group">
+          <div>
+            <Link
+              href="/about?tab=team"
+              className="about-image relative aspect-[4/3] w-full overflow-hidden rounded-lg shadow-2xl block cursor-none"
+              onMouseEnter={() => !isMobile && setIsHoveringImage(true)}
+              onMouseLeave={() => !isMobile && setIsHoveringImage(false)}
+            >
               <Image
                 src="/havia-photo-1.png"
                 alt="Havia Studio Team"
                 fill
-                className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
               />
-
-              {/* CAPTION */}
-              <div className="absolute bottom-0 left-0 right-0 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                <div className="bg-white/90 backdrop-blur-sm py-3 px-4">
-                  <p className="text-xs uppercase tracking-wider text-[#2c2a29] text-center">
-                    The Team
-                  </p>
-                  <p className="text-[10px] font-light text-[#2c2a29]/60 text-center">
-                    Creative minds behind the work
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* MOBILE */}
-        <div className="lg:hidden space-y-6">
-          
-          {/* IMAGE */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative"
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden">
-              <Image
-                src="/havia-photo-1.png"
-                alt="Havia Studio Team"
-                fill
-                className="object-cover"
-              />
-
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent py-3 px-4">
-                <p className="text-xs uppercase tracking-wider text-white/90">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <p className="text-xs uppercase tracking-wider text-white/90 text-center font-sans">
                   The Team
                 </p>
-                <p className="text-[10px] text-white/60">
+                <p className="text-[10px] text-white/70 text-center font-sans">
                   Creative minds behind the work
                 </p>
               </div>
+            </Link>
+
+            <div className="about-cta mt-8 lg:hidden">
+              <Link
+                href="/about?tab=team"
+                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300"
+              >
+                <span className="text-xs uppercase tracking-wider font-sans">
+                  View More
+                </span>
+                <ArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </Link>
             </div>
-          </motion.div>
-
-          {/* TEXT */}
-          <motion.div className="space-y-4 text-[#2c2a29]/70">
-            <p className="text-sm leading-relaxed text-justify">{p1}</p>
-            <p className="text-sm leading-relaxed text-justify">{p2}</p>
-          </motion.div>
-
-          {/* STATS */}
-          <motion.div className="grid grid-cols-2 gap-8">
-            <div>
-              <p className="text-3xl text-[#2c2a29] font-light">
-                <Counter value={stat1Val} />
-              </p>
-              <p className="text-[10px] text-[#2c2a29]/40 mt-2 tracking-wide">
-                {stat1Label}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-3xl text-[#2c2a29] font-light">
-                <Counter value={stat2Val} />
-              </p>
-              <p className="text-[10px] text-[#2c2a29]/40 mt-2 tracking-wide">
-                {stat2Label}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* BUTTON */}
-          <Link
-            href="/about?tab=team"
-            className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-[#c69c3d] transition-all duration-300 w-full"
-          >
-            <span className="text-xs uppercase tracking-wider text-[#2c2a29] group-hover:text-white">
-              View More
-            </span>
-            <ArrowRight className="text-[#2c2a29] group-hover:text-white" />
-          </Link>
+          </div>
         </div>
       </div>
+
+      {/* Custom Cursor */}
+      {!isMobile && isHoveringImage && (
+        <div
+          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-1/2"
+          style={{ left: cursorPos.x, top: cursorPos.y }}
+        >
+          <div className="bg-white/20 backdrop-blur-md rounded-full px-6 py-3 border border-white/30 shadow-lg">
+            <span
+              className="text-white text-xs uppercase tracking-wider whitespace-nowrap font-sans"
+              style={{ fontFamily: "'Open Sans', sans-serif" }}
+            >
+              Meet Our Team
+            </span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

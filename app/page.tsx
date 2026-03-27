@@ -18,8 +18,8 @@ export default async function Home() {
       <Header cmsData={cmsData} />
       <Hero cmsData={cmsData} />
       <RequestPortfolio cmsData={cmsData} />
-      <About cmsData={cmsData} />
       <Portfolio cmsData={cmsData} />
+      <About cmsData={cmsData} />
       <Trust cmsData={cmsData} />
       <ContactSection cmsData={cmsData} />
       <WhatsappCTA cmsData={cmsData} />
