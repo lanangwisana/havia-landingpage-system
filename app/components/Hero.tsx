@@ -2,8 +2,14 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { ChevronUp } from "lucide-react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { ChevronDown, ArrowUpRight } from "lucide-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  Variants,
+} from "framer-motion";
 
 type Project = {
   id: number;
@@ -12,7 +18,7 @@ type Project = {
 };
 
 const projects: Project[] = [
-  { id: 1, image: "/havia-project-2.jpg", category: "Residence" },
+  { id: 1, image: "/havia-project-2.jpg", category: "Residential" },
   { id: 2, image: "/havia-project-4.jpg", category: "Commercial" },
   { id: 3, image: "/havia-project-1.jpg", category: "Educational" },
   { id: 4, image: "/havia-project-8.jpg", category: "Interior" },
@@ -25,197 +31,277 @@ export default function Hero({ cmsData }: { cmsData: any }) {
   const [showCursor, setShowCursor] = useState(false);
   const [hoverExplore, setHoverExplore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
+  const [hasAnimated, setHasAnimated] = useState(false);
+
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Scroll animations
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
   });
-  
   const springScroll = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
   });
-  
-  // Transform values untuk animasi scroll
   const opacity = useTransform(springScroll, [0, 0.5], [1, 0.3]);
   const scale = useTransform(springScroll, [0, 0.5], [1, 0.95]);
   const y = useTransform(springScroll, [0, 0.5], [0, 50]);
-  const blur = useTransform(springScroll, [0, 0.5], [0, 5]);
-  
-  const handleExploreClick = () => {
-    const el = document.querySelector("#portfolio");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+
+  const handleExploreClick = (category?: string) => {
+    const portfolioSection = document.querySelector("#portfolio");
+    if (portfolioSection) {
+      if (category) sessionStorage.setItem("selectedCategory", category);
+      portfolioSection.scrollIntoView({ behavior: "smooth" });
+      window.dispatchEvent(
+        new CustomEvent("filterProjects", {
+          detail: { category: category || null },
+        }),
+      );
+    }
   };
 
   useEffect(() => {
-    const move = (e: MouseEvent) => {
+    const move = (e: MouseEvent) =>
       setCursorPos({ x: e.clientX, y: e.clientY });
-    };
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     window.addEventListener("mousemove", move);
-    
+    setTimeout(() => setHasAnimated(true), 100);
     return () => {
       window.removeEventListener("resize", checkMobile);
       window.removeEventListener("mousemove", move);
     };
   }, []);
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
+  const exploreButtonVariants: Variants = {
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { delay: 0.8, duration: 0.5, ease: "easeOut" },
+    },
+  };
+
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-[#f2f1f0] py-12 md:py-18 overflow-hidden mt-10"
+      className="relative w-full bg-[var(--havia-offwhite)] py-12 md:py-18 overflow-hidden mt-10"
       onMouseEnter={() => !isMobile && setShowCursor(true)}
       onMouseLeave={() => !isMobile && setShowCursor(false)}
     >
-      {/* CONTAINER dengan efek scroll */}
-      <motion.div 
+      <motion.div
         ref={containerRef}
-        style={{
-          opacity,
-          scale,
-          y,
-          filter: `blur(${blur}px)`
-        }}
+        style={{ opacity, scale, y }}
         className="max-w-7xl mx-auto px-4 md:px-6 h-[70vh] relative"
       >
-        <div className="w-full h-full flex gap-3 md:gap-4">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={hasAnimated ? "visible" : "hidden"}
+          className="w-full h-full flex gap-2 md:gap-4"
+        >
           {projects.map((project, index) => {
             const isActive = index === activeIndex;
-
             return (
-              <div
+              <motion.div
                 key={project.id}
+                variants={itemVariants}
                 onMouseEnter={() => !isMobile && setActiveIndex(index)}
                 onClick={() => isMobile && setActiveIndex(index)}
                 className={`
-                  relative h-full overflow-hidden rounded-lg
+                  relative h-full overflow-hidden cursor-none
                   transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
                   ${isActive ? "flex-[4]" : "flex-[1]"}
-                  ${!isMobile ? "cursor-none" : "cursor-pointer"}
                 `}
               >
-                {/* IMAGE */}
                 <div className="absolute inset-0">
                   <Image
                     src={project.image}
                     alt={project.category}
                     fill
-                    className={`
-                      object-cover transition-all duration-700
-                      ${
-                        isActive
-                          ? "scale-105 md:grayscale-0 blur-[2px] md:blur-[2px]"
-                          : "grayscale"
-                      }
-                    `}
+                    className={`object-cover transition-all duration-700 ${
+                      isActive ? "scale-105 md:grayscale-0" : "grayscale"
+                    }`}
                   />
                 </div>
 
-                {/* OVERLAY PUTIH */}
-                {!isActive && (
-                  <div className="absolute inset-0 bg-white/70" />
-                )}
-
-                {/* DARK OVERLAY ACTIVE */}
+                {!isActive && <div className="absolute inset-0 bg-white/70" />}
                 {isActive && (
-                  <div className="absolute inset-0 bg-black/40" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
                 )}
 
-                {/* CONTENT */}
+                {isMobile && isActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExploreClick(project.category);
+                    }}
+                    className="absolute bottom-4 right-4 z-20 text-white/80 hover:text-white transition-colors"
+                    aria-label={`Explore ${project.category} projects`}
+                  >
+                    <ArrowUpRight size={20} strokeWidth={1.5} />
+                  </button>
+                )}
+
                 <motion.div
                   initial={false}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    y: isActive ? 0 : 20
-                  }}
+                  animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 30 }}
                   transition={{ duration: 0.5, delay: isActive ? 0.2 : 0 }}
-                  className={`
-                    absolute inset-0 flex flex-col items-center justify-center gap-3
-                    transition-all duration-500 z-10
-                  `}
+                  className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 md:px-6"
                 >
-                  <motion.div 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: isActive ? 1 : 0 }}
-                    transition={{ duration: 0.4, delay: isActive ? 0.3 : 0 }}
-                    className="w-8 h-8 border border-white bg-white/10 rounded-sm"
-                  />
-                  <motion.p 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 10 }}
-                    transition={{ duration: 0.4, delay: isActive ? 0.4 : 0 }}
-                    className="text-xs md:text-sm tracking-[0.3em] uppercase text-white font-light"
-                    style={{ fontFamily: "'Open Sans', sans-serif" }}
-                  >
-                    {project.category}
-                  </motion.p>
+                  {isActive && (
+                    <>
+                      <motion.h2
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.6 }}
+                        className="text-xl md:text-5xl font-light text-white uppercase tracking-[2px] mb-2 md:mb-4 text-center break-words font-sans"
+                      >
+                        {project.category}
+                      </motion.h2>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: 40 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                        className="h-px bg-[var(--havia-gold)] mb-3 md:mb-6"
+                      />
+                      {!isMobile && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6, duration: 0.5 }}
+                          className="group cursor-none"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExploreClick(project.category);
+                          }}
+                        >
+                          <div className="flex items-center gap-1.5 md:gap-3 flex-wrap justify-center">
+                            <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
+                              Go to
+                            </span>
+                            <span className="text-[11px] md:text-sm uppercase tracking-[0.1em] text-white font-semibold group-hover:text-[var(--havia-gold)] transition-colors">
+                              {project.category}
+                            </span>
+                            <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
+                              Project
+                            </span>
+                            <ArrowUpRight
+                              size={12}
+                              className="text-white/70 group-hover:text-[var(--havia-gold)] transition-colors"
+                            />
+                          </div>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            whileHover={{ width: "100%" }}
+                            transition={{ duration: 0.3 }}
+                            className="h-[1px] bg-[var(--havia-gold)] mt-1.5 md:mt-2"
+                          />
+                        </motion.div>
+                      )}
+                    </>
+                  )}
                 </motion.div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
 
-        {/* EXPLORE BUTTON - dengan animasi scroll */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="absolute bottom-[-80px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+        <motion.div
+          variants={exploreButtonVariants}
+          initial="hidden"
+          animate={hasAnimated ? "visible" : "hidden"}
+          className="absolute bottom-[-100px] left-1/2 -translate-x-1/2"
         >
           <button
-            onClick={handleExploreClick}
+            onClick={() => handleExploreClick()}
             onMouseEnter={() => !isMobile && setHoverExplore(true)}
             onMouseLeave={() => !isMobile && setHoverExplore(false)}
-            className="group flex flex-col items-center text-[#2c2a29] transition-all duration-300"
+            className="group relative flex flex-col items-center"
           >
-            {/* Teks dengan efek hover */}
-            <span className={`
-              text-[10px] md:text-[11px] tracking-[0.35em] uppercase transition-all duration-300 font-medium
-              ${hoverExplore && !isMobile ? 'text-[#c69c3d] opacity-100' : 'opacity-60'}
-            `}
-            style={{ fontFamily: "'Helvetica', sans-serif" }}>
-              Explore
-            </span>
-
-            {/* CUSTOM ICON dengan efek hover */}
-            <div className="flex flex-col items-center gap-[3px] mt-1">
-              <div className={`
-                w-6 h-3 border-t rounded-t-full transition-all duration-300
-                ${hoverExplore && !isMobile
-                  ? 'border-[#c69c3d] opacity-100 scale-110'
-                  : 'border-[#2c2a29] opacity-60'
-                }
-              `} />
-              <div className={`
-                w-4 h-2 border-t rounded-t-full transition-all duration-300
-                ${hoverExplore && !isMobile
-                  ? 'border-[#c69c3d] opacity-100 scale-110'
-                  : 'border-[#2c2a29] opacity-40'
-                }
-              `} />
+            <div className="relative flex flex-col items-center cursor-none">
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className={`text-[10px] md:text-xs tracking-[0.2em] font-medium transition-all duration-300 ${
+                    hoverExplore && !isMobile
+                      ? "text-[var(--havia-gold)]"
+                      : "text-[var(--havia-charcoal)]/60"
+                  }`}
+                >
+                  Explore More Projects
+                </span>
+                <motion.div
+                  animate={{ y: hoverExplore && !isMobile ? 5 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown
+                    size={12}
+                    className={`transition-colors duration-300 ${
+                      hoverExplore && !isMobile
+                        ? "text-[var(--havia-gold)]"
+                        : "text-[var(--havia-charcoal)]/40"
+                    }`}
+                  />
+                </motion.div>
+              </div>
+              <div className="relative w-12 h-px overflow-hidden">
+                <div
+                  className={`absolute inset-0 bg-[var(--havia-charcoal)]/40 transition-transform duration-500 ${
+                    hoverExplore && !isMobile
+                      ? "translate-x-0"
+                      : "-translate-x-full"
+                  }`}
+                />
+                <div
+                  className={`absolute inset-0 bg-[var(--havia-gold)] transition-transform duration-500 ${
+                    hoverExplore && !isMobile
+                      ? "translate-x-0"
+                      : "translate-x-full"
+                  }`}
+                />
+              </div>
+              <div className="w-8 h-px bg-[var(--havia-charcoal)]/20 mt-2" />
             </div>
-            
-            {/* Tambahan garis bawah untuk memperjelas clickable */}
-            <div className={`
-              w-0 h-[1px] bg-[#c69c3d] transition-all duration-300 mt-1
-              ${hoverExplore && !isMobile ? 'w-12' : 'w-0'}
-            `} />
+            <motion.div
+              animate={{ y: [0, 5, 0] }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="mt-3"
+            >
+              <ChevronDown
+                size={16}
+                className="text-[var(--havia-charcoal)]/40"
+              />
+            </motion.div>
           </button>
         </motion.div>
       </motion.div>
 
-      {/* CUSTOM CURSOR - hanya tampil di desktop */}
+      {/* Custom Cursor */}
       {!isMobile && showCursor && (
         <motion.div
           className="pointer-events-none fixed z-50"
@@ -229,156 +315,17 @@ export default function Hero({ cmsData }: { cmsData: any }) {
           exit={{ scale: 0, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <div className={`
-            w-10 h-10 rounded-full border flex items-center justify-center text-xs
-            transition-all duration-300
-            ${hoverExplore
-              ? 'border-[#c69c3d] text-[#c69c3d] scale-110'
-              : 'border-white text-white'
-            }
-          `}>
-            <ChevronUp size={16} />
+          <div
+            className={`
+              w-10 h-10 rounded-full border-2 flex items-center justify-center
+              transition-all duration-300 backdrop-blur-sm
+              ${hoverExplore ? "border-[var(--havia-gold)] bg-[var(--havia-gold)]/20 text-[var(--havia-gold)] scale-110" : "border-white/50 bg-white/10 text-white"}
+            `}
+          >
+            <ArrowUpRight size={16} />
           </div>
         </motion.div>
       )}
-
-      {/* Global Styles untuk font dan animations */}
-      <style jsx global>{`
-        /* Font settings */
-        * {
-          font-family: 'Helvetica', 'Open Sans', sans-serif;
-        }
-        
-        /* Heading styles */
-        h1, h2, h3, h4, h5, h6 {
-          font-family: 'Helvetica', sans-serif;
-          font-weight: 500;
-          letter-spacing: -0.02em;
-        }
-        
-        /* Body text */
-        p, span, button {
-          font-family: 'Open Sans', sans-serif;
-        }
-        
-        /* Scroll animations */
-        html {
-          scroll-behavior: smooth;
-        }
-        
-        /* Parallax effect for scroll */
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        /* Animation classes */
-        .fade-in-up {
-          animation: fadeInUp 0.8s ease-out forwards;
-        }
-        
-        .scale-in {
-          animation: scaleIn 0.6s ease-out forwards;
-        }
-        
-        .slide-in-left {
-          animation: slideInLeft 0.7s ease-out forwards;
-        }
-        
-        .slide-in-right {
-          animation: slideInRight 0.7s ease-out forwards;
-        }
-        
-        /* Stagger children animations */
-        .stagger-children > * {
-          opacity: 0;
-          animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        .stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
-        .stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
-        .stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
-        .stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
-        .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
-        
-        /* Smooth scroll indicator */
-        @keyframes bounce-slow {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(5px);
-          }
-        }
-        
-        .animate-bounce-slow {
-          animation: bounce-slow 2s infinite;
-        }
-        
-        /* Hover effects only for desktop */
-        @media (min-width: 768px) {
-          .hover-lift {
-            transition: transform 0.3s ease;
-          }
-          
-          .hover-lift:hover {
-            transform: translateY(-5px);
-          }
-        }
-        
-        /* Mobile touch optimizations */
-        @media (max-width: 768px) {
-          button, [onClick] {
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-          }
-          
-          /* Improve touch targets */
-          button {
-            min-height: 44px;
-            min-width: 44px;
-          }
-        }
-      `}</style>
     </section>
   );
 }

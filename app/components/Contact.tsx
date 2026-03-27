@@ -4,30 +4,44 @@ import Image from "next/image";
 import { Instagram, Linkedin, MapPin, Phone, Mail } from "lucide-react";
 
 export default function Contact({ cmsData }: { cmsData: any }) {
-  const tagline = cmsData?.landingpage_contact_p || "Partner terpercaya untuk merancang dan membangun masa depan Anda.";
-  const instagramUrl = cmsData?.landingpage_contact_instagram || "https://www.instagram.com/studiohavia/";
-  const linkedinUrl = cmsData?.landingpage_contact_linkedin || "https://www.linkedin.com/company/havia-studio/";
-  const address = cmsData?.landingpage_contact_address || "Jl. Sulaksana Baru III No.20, Cicaheum, Kec. Kiaracondong, Kota Bandung";
-  const mapsUrl = cmsData?.landingpage_contact_maps_url || "https://maps.app.goo.gl/WgGBhZU66tGKscuA7";
+  const tagline =
+    cmsData?.landingpage_contact_p ||
+    "Creating Space. Facing the Future. Designing a Good Life.";
+  const instagramUrl =
+    cmsData?.landingpage_contact_instagram ||
+    "https://www.instagram.com/studiohavia/";
+  const linkedinUrl =
+    cmsData?.landingpage_contact_linkedin ||
+    "https://www.linkedin.com/company/havia-studio/";
+  const address =
+    cmsData?.landingpage_contact_address ||
+    "Jl. Sulaksana Baru III No.20, Cicaheum, Kec. Kiaracondong, Kota Bandung";
+  const mapsUrl =
+    cmsData?.landingpage_contact_maps_url ||
+    "https://maps.app.goo.gl/WgGBhZU66tGKscuA7";
   const phone = cmsData?.landingpage_contact_phone || "+62 811 2430 121";
   const email = cmsData?.landingpage_contact_email || "haviastudio@gmail.com";
-  const hoursWeekday = cmsData?.landingpage_contact_hours_weekday || "Senin - Jumat / 08:00 - 17:00";
-  const hoursWeekend = cmsData?.landingpage_contact_hours_weekend || "Sabtu - Minggu / Tutup";
-  const copyright = cmsData?.landingpage_contact_copyright || "\u00A9 2026 Havia Studio. All rights reserved.";
+  const hoursWeekday =
+    cmsData?.landingpage_contact_hours_weekday ||
+    "Senin - Jumat / 08:00 - 17:00";
+  const hoursWeekend =
+    cmsData?.landingpage_contact_hours_weekend || "Sabtu - Minggu / Tutup";
+  const copyright =
+    cmsData?.landingpage_contact_copyright ||
+    "\u00A9 2026 Havia Studio. All rights reserved.";
 
-  // Parse weekday/weekend into label + value
   const weekdayParts = hoursWeekday.split(" / ");
   const weekendParts = hoursWeekend.split(" / ");
 
-  // Format phone for WA link (strip spaces, +, -)
   const waPhone = phone.replace(/[\s\-\+]/g, "");
 
   return (
-    <section id="contact" className="bg-black text-white py-12">
+    <section
+      id="contact"
+      className="bg-[var(--havia-charcoal)] text-white font-sans py-8 md:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4">
-        {/* Top Grid */}
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_1.6fr_0.6fr_1.2fr]">
-          {/* Brand */}
+        <div className="grid gap-8 md:gap-12 lg:grid-cols-[1.2fr_1.6fr_0.6fr_1.2fr]">
           <div>
             <div className="mb-6">
               <Image
@@ -39,119 +53,152 @@ export default function Contact({ cmsData }: { cmsData: any }) {
               />
             </div>
 
-            <p className="text-white/70 leading-relaxed mb-8 max-w-sm">
+            <p className="text-white/70 leading-relaxed mb-8 max-w-sm text-sm md:text-base">
               {tagline}
             </p>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <a
                 href={instagramUrl}
                 target="_blank"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-havia-gold hover:text-[var(--havia-gold)] transition"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[var(--havia-gold)] transition"
               >
-                <Instagram size={18} />
+                <Instagram size={18} className="text-white" />
               </a>
 
               <a
                 href={linkedinUrl}
                 target="_blank"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-havia-gold hover:text-[var(--havia-gold)] transition"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[var(--havia-gold)] transition"
               >
-                <Linkedin size={18} />
+                <Linkedin size={18} className="text-white" />
               </a>
-            </div>
-          </div>
 
-          {/* Kontak */}
-          <div>
-            <h4 className="text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
-              Alamat
-            </h4>
-
-            <div className="space-y-5 text-white/70">
               <a
                 href={mapsUrl}
                 target="_blank"
-                className="flex gap-4 items-start hover:text-white transition"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[var(--havia-gold)] transition md:hidden"
               >
-                <MapPin size={18} className="mt-1 text-havia-gold" />
-                <p className="max-w-xs">
-                  {address}
-                </p>
+                <MapPin size={18} className="text-white" />
               </a>
-              <h4 className="mt-10 text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
-                Kontak
-              </h4>
+
               <a
                 href={`https://wa.me/${waPhone}`}
                 target="_blank"
-                className="flex gap-4 items-center hover:text-white transition"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[var(--havia-gold)] transition md:hidden"
               >
-                <Phone size={18} className="text-havia-gold" />
-                <p>{phone}</p>
+                <Phone size={18} className="text-white" />
               </a>
 
               <a
                 href={`mailto:${email}`}
-                className="flex gap-4 items-center hover:text-white transition"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[var(--havia-gold)] transition md:hidden"
               >
-                <Mail size={18} className="text-havia-gold" />
-                <p>{email}</p>
+                <Mail size={18} className="text-white" />
               </a>
             </div>
           </div>
 
-          {/* Menu */}
           <div>
-            <h4 className="text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
-              Menu
-            </h4>
+            <div className="hidden md:block">
+              <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
+                Alamat
+              </h4>
 
-            {/* Mobile 2 kolom */}
-            <div className="grid grid-cols-2 gap-y-3 text-white/70 md:block md:space-y-3">
-              <a href="#hero" className="block hover:text-white transition">
-                Home
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-4 items-start text-white/80 hover:text-white transition"
+              >
+                <MapPin size={18} className="mt-1 text-[var(--havia-gold)]" />
+                <p className="max-w-xs text-sm md:text-base">{address}</p>
               </a>
+            </div>
 
-              <a href="#about" className="block hover:text-white transition">
-                About
+            <div className="hidden md:block mt-8 md:mt-10">
+              <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
+                Kontak
+              </h4>
+
+              <a
+                href={`https://wa.me/${waPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-4 items-center text-white/80 hover:text-white transition"
+              >
+                <Phone size={18} className="text-[var(--havia-gold)]" />
+                <p className="text-sm md:text-base">{phone}</p>
               </a>
 
               <a
-                href="#portfolio"
-                className="block hover:text-white transition"
+                href={`mailto:${email}`}
+                className="flex gap-4 items-center text-white/80 hover:text-white transition mt-3"
               >
-                Portfolio
-              </a>
-
-              <a href="#trust" className="block hover:text-white transition">
-                Testimonial
+                <Mail size={18} className="text-[var(--havia-gold)]" />
+                <p className="text-sm md:text-base">{email}</p>
               </a>
             </div>
           </div>
 
-          {/* Jam Operasional */}
           <div>
-            <h4 className="text-sm uppercase tracking-[0.2em] mb-6 text-white/80">
-              Jam Operasional
+            <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
+              Menu
+            </h4>
+            <div className="grid grid-cols-2 gap-y-3 text-white/70 md:block md:space-y-3">
+              <a
+                href="#"
+                className="block hover:text-white transition text-sm md:text-base"
+              >
+                Home
+              </a>
+              <a
+                href="#about"
+                className="block hover:text-white transition text-sm md:text-base"
+              >
+                About
+              </a>
+              <a
+                href="#portfolio"
+                className="block hover:text-white transition text-sm md:text-base"
+              >
+                Projects
+              </a>
+              <a
+                href="#trust"
+                className="block hover:text-white transition text-sm md:text-base"
+              >
+                Client
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
+              Working Hours
             </h4>
 
             <div className="space-y-4 text-white/70">
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm md:text-base">
                 <span>{weekdayParts[0] || "Senin - Jumat"}</span>
                 <span>{weekdayParts[1] || "08:00 - 17:00"}</span>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm md:text-base">
                 <span>{weekendParts[0] || "Sabtu - Minggu"}</span>
-                <span className="text-havia-gold">{weekendParts[1] || "Tutup"}</span>
+                <span className="text-[var(--havia-gold)]">
+                  {weekendParts[1] || "Tutup"}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-white/10 mt-16 pt-8 text-center text-sm text-white/40">
+        <div className="border-t border-white/10 mt-12 md:mt-16 pt-6 md:pt-8 text-center text-xs md:text-sm text-white/40">
           {copyright}
         </div>
       </div>
