@@ -23,18 +23,23 @@ export default function Header({ cmsData }: { cmsData?: any }) {
   ];
 
   const handleMenuClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault(); 
-    const targetId = href.substring(1); 
+    e.preventDefault();
+    const targetId = href.substring(1);
     const targetElement = document.getElementById(targetId);
+    
     if (targetElement) {
-      const headerOffset = 64; 
-      const elementPosition = targetElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.scrollY - headerOffset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      // Tutup menu
+      setMobileOpen(false);
+      // Scroll ke target dengan smooth behavior (menggunakan CSS scroll-margin-top)
+      setTimeout(() => {
+        targetElement.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     } else {
+      console.warn(`Element with id "${targetId}" not found.`);
+      // Fallback
       window.location.href = href;
+      setMobileOpen(false);
     }
-    setMobileOpen(false); 
   };
 
   return (
@@ -86,7 +91,7 @@ export default function Header({ cmsData }: { cmsData?: any }) {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="md:hidden overflow-hidden bg-white/90 border-t border-[#2c2a29]/10"
-            style={{ zIndex: 999 }} 
+            style={{ zIndex: 999 }}
           >
             <div className="px-6 pt-6 pb-8 flex flex-col gap-6">
               {menuItems.map((item) => (
