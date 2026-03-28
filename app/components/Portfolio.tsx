@@ -607,10 +607,10 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             <div className="max-w-7xl">
               <button
                 onClick={closeModal}
-                className="inline-flex items-center gap-1 text-[12px] text-[#2c2a29]/20 hover:text-[#c69c3d] transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-[#2c2a29]/60 hover:text-[#c69c3d] transition-colors group"
               >
-                <Undo2 size={18} />
-                Back to home
+                <Undo2 size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                <span className="border-b border-transparent group-hover:border-[#c69c3d] transition-colors pb-0.5">Back to home</span>
               </button>
             </div>
           </div>

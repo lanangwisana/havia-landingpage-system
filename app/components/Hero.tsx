@@ -1,14 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
+  AnimatePresence,
   Variants,
+  PanInfo,
 } from "framer-motion";
 
 type Project = {
@@ -25,8 +27,24 @@ const projects: Project[] = [
   { id: 5, image: "/havia-project-6.jpg", category: "Masterplan" },
 ];
 
+const swipeVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+};
+
 export default function Hero({ cmsData }: { cmsData: any }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [[mobileIndex, direction], setMobileSlide] = useState([0, 0]);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [showCursor, setShowCursor] = useState(false);
   const [hoverExplore, setHoverExplore] = useState(false);
@@ -35,6 +53,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
 
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -58,6 +77,47 @@ export default function Hero({ cmsData }: { cmsData: any }) {
           detail: { category: category || null },
         }),
       );
+    }
+  };
+
+  const paginate = useCallback(
+    (newDirection: number) => {
+      setMobileSlide(([prev]) => {
+        let next = prev + newDirection;
+        if (next < 0) next = projects.length - 1;
+        if (next >= projects.length) next = 0;
+        return [next, newDirection];
+      });
+    },
+    [],
+  );
+
+  const goToSlide = useCallback((index: number) => {
+    setMobileSlide(([prev]) => [index, index > prev ? 1 : -1]);
+  }, []);
+
+  // Auto-advance for mobile carousel
+  useEffect(() => {
+    if (!isMobile) return;
+    autoPlayRef.current = setInterval(() => paginate(1), 5000);
+    return () => {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    };
+  }, [isMobile, paginate]);
+
+  const resetAutoPlay = useCallback(() => {
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    autoPlayRef.current = setInterval(() => paginate(1), 5000);
+  }, [paginate]);
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const swipeThreshold = 50;
+    if (info.offset.x < -swipeThreshold || info.velocity.x < -500) {
+      paginate(1);
+      resetAutoPlay();
+    } else if (info.offset.x > swipeThreshold || info.velocity.x > 500) {
+      paginate(-1);
+      resetAutoPlay();
     }
   };
 
@@ -103,6 +163,219 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     },
   };
 
+  // ── Mobile Carousel Layout ──
+  const renderMobileHero = () => {
+    const currentProject = projects[mobileIndex];
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={hasAnimated ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full h-full flex flex-col"
+      >
+        {/* Carousel area */}
+        <div className="relative flex-1 overflow-hidden rounded-sm">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={mobileIndex}
+              custom={direction}
+              variants={swipeVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.12}
+              onDragEnd={handleDragEnd}
+              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+            >
+              {/* Image */}
+              <Image
+                src={currentProject.image}
+                alt={currentProject.category}
+                fill
+                className="object-cover"
+                priority
+              />
+
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              {/* Content overlay */}
+              <div className="absolute inset-0 flex flex-col items-start justify-end p-6 pb-8 z-10">
+                <motion.div
+                  key={`content-${mobileIndex}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <h2 className="text-2xl font-light text-white uppercase tracking-[3px] mb-2 font-sans">
+                    {currentProject.category}
+                  </h2>
+                  <div className="w-10 h-px bg-[var(--havia-gold)] mb-4" />
+                  <button
+                    onClick={() =>
+                      handleExploreClick(currentProject.category)
+                    }
+                    className="flex items-center gap-2 group"
+                  >
+                    <span className="text-[11px] uppercase tracking-[0.15em] text-white/70 group-active:text-white transition-colors">
+                      View Projects
+                    </span>
+                    <ArrowUpRight
+                      size={14}
+                      strokeWidth={1.5}
+                      className="text-white/70 group-active:text-[var(--havia-gold)] transition-colors"
+                    />
+                  </button>
+                </motion.div>
+              </div>
+
+              {/* HAVIA watermark */}
+              <div className="absolute bottom-4 left-6 z-10">
+                <span className="text-[10px] tracking-[0.3em] text-white/20 uppercase font-light">
+                  HAVIA
+                </span>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Dot indicators + counter */}
+        <div className="flex items-center justify-center gap-3 pt-5 pb-2">
+          <span className="text-[10px] tracking-[0.15em] text-[var(--havia-charcoal)]/40 font-mono">
+            {String(mobileIndex + 1).padStart(2, "0")}
+          </span>
+          <div className="flex items-center gap-2">
+            {projects.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  goToSlide(idx);
+                  resetAutoPlay();
+                }}
+                aria-label={`Go to project ${idx + 1}`}
+                className="relative p-1"
+              >
+                <div
+                  className={`transition-all duration-300 rounded-full ${
+                    idx === mobileIndex
+                      ? "w-5 h-1.5 bg-[var(--havia-gold)]"
+                      : "w-1.5 h-1.5 bg-[var(--havia-charcoal)]/20"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          <span className="text-[10px] tracking-[0.15em] text-[var(--havia-charcoal)]/40 font-mono">
+            {String(projects.length).padStart(2, "0")}
+          </span>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // ── Desktop Accordion Layout ──
+  const renderDesktopHero = () => (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate={hasAnimated ? "visible" : "hidden"}
+      className="w-full h-full flex gap-4"
+    >
+      {projects.map((project, index) => {
+        const isActive = index === activeIndex;
+        return (
+          <motion.div
+            key={project.id}
+            variants={itemVariants}
+            onMouseEnter={() => setActiveIndex(index)}
+            className={`
+              relative h-full overflow-hidden cursor-none
+              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+              ${isActive ? "flex-[4]" : "flex-[1]"}
+            `}
+          >
+            <div className="absolute inset-0">
+              <Image
+                src={project.image}
+                alt={project.category}
+                fill
+                className={`object-cover transition-all duration-700 ${
+                  isActive ? "scale-105 grayscale-0" : "grayscale"
+                }`}
+              />
+            </div>
+
+            {!isActive && <div className="absolute inset-0 bg-white/70" />}
+            {isActive && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
+            )}
+
+            <motion.div
+              initial={false}
+              animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 30 }}
+              transition={{ duration: 0.5, delay: isActive ? 0.2 : 0 }}
+              className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6"
+            >
+              {isActive && (
+                <>
+                  <motion.h2
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                    className="text-5xl font-light text-white uppercase tracking-[2px] mb-4 text-center break-words font-sans"
+                  >
+                    {project.category}
+                  </motion.h2>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: 40 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="h-px bg-[var(--havia-gold)] mb-6"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    className="group cursor-none"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExploreClick(project.category);
+                    }}
+                  >
+                    <div className="flex items-center gap-3 flex-wrap justify-center">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
+                        Go to
+                      </span>
+                      <span className="text-sm uppercase tracking-[0.1em] text-white font-semibold group-hover:text-[var(--havia-gold)] transition-colors">
+                        {project.category}
+                      </span>
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
+                        Project
+                      </span>
+                      <ArrowUpRight
+                        size={12}
+                        className="text-white/70 group-hover:text-[var(--havia-gold)] transition-colors"
+                      />
+                    </div>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileHover={{ width: "100%" }}
+                      transition={{ duration: 0.3 }}
+                      className="h-[1px] bg-[var(--havia-gold)] mt-2"
+                    />
+                  </motion.div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+
   return (
     <section
       ref={sectionRef}
@@ -115,118 +388,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
         style={{ opacity, scale, y }}
         className="max-w-7xl mx-auto px-4 md:px-6 h-[70vh] relative"
       >
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={hasAnimated ? "visible" : "hidden"}
-          className="w-full h-full flex gap-2 md:gap-4"
-        >
-          {projects.map((project, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <motion.div
-                key={project.id}
-                variants={itemVariants}
-                onMouseEnter={() => !isMobile && setActiveIndex(index)}
-                onClick={() => isMobile && setActiveIndex(index)}
-                className={`
-                  relative h-full overflow-hidden cursor-none
-                  transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-                  ${isActive ? "flex-[4]" : "flex-[1]"}
-                `}
-              >
-                <div className="absolute inset-0">
-                  <Image
-                    src={project.image}
-                    alt={project.category}
-                    fill
-                    className={`object-cover transition-all duration-700 ${
-                      isActive ? "scale-105 md:grayscale-0" : "grayscale"
-                    }`}
-                  />
-                </div>
-
-                {!isActive && <div className="absolute inset-0 bg-white/70" />}
-                {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
-                )}
-
-                {isMobile && isActive && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleExploreClick(project.category);
-                    }}
-                    className="absolute bottom-4 right-4 z-20 text-white/80 hover:text-white transition-colors"
-                    aria-label={`Explore ${project.category} projects`}
-                  >
-                    <ArrowUpRight size={20} strokeWidth={1.5} />
-                  </button>
-                )}
-
-                <motion.div
-                  initial={false}
-                  animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 30 }}
-                  transition={{ duration: 0.5, delay: isActive ? 0.2 : 0 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 md:px-6"
-                >
-                  {isActive && (
-                    <>
-                      <motion.h2
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-xl md:text-5xl font-light text-white uppercase tracking-[2px] mb-2 md:mb-4 text-center break-words font-sans"
-                      >
-                        {project.category}
-                      </motion.h2>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: 40 }}
-                        transition={{ delay: 0.5, duration: 0.5 }}
-                        className="h-px bg-[var(--havia-gold)] mb-3 md:mb-6"
-                      />
-                      {!isMobile && (
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.6, duration: 0.5 }}
-                          className="group cursor-none"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleExploreClick(project.category);
-                          }}
-                        >
-                          <div className="flex items-center gap-1.5 md:gap-3 flex-wrap justify-center">
-                            <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
-                              Go to
-                            </span>
-                            <span className="text-[11px] md:text-sm uppercase tracking-[0.1em] text-white font-semibold group-hover:text-[var(--havia-gold)] transition-colors">
-                              {project.category}
-                            </span>
-                            <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
-                              Project
-                            </span>
-                            <ArrowUpRight
-                              size={12}
-                              className="text-white/70 group-hover:text-[var(--havia-gold)] transition-colors"
-                            />
-                          </div>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileHover={{ width: "100%" }}
-                            transition={{ duration: 0.3 }}
-                            className="h-[1px] bg-[var(--havia-gold)] mt-1.5 md:mt-2"
-                          />
-                        </motion.div>
-                      )}
-                    </>
-                  )}
-                </motion.div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        {isMobile ? renderMobileHero() : renderDesktopHero()}
 
         <motion.div
           variants={exploreButtonVariants}
