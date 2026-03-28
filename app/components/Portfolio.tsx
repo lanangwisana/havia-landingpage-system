@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import Image from "next/image";
 import {
   X,
@@ -150,6 +150,19 @@ const staticProjects: Project[] = [
       "Tidak hanya pantai dan beachclubnya, bentangan alam kawasan Muara Batang Anai secara keseluruhan sangatlah khas dan sayang untuk dilewatkan. Nuansa pantai nya secara gradual berubah menjadi sungai bakau dan pepohonan. Semua terkoneksi oleh sirkulasi kawasan dengan beragam alternatif moda, mulai dari berjalan kaki, bersepeda, shuttle car, hingga tentu saja perahu. Dalam perjalanan eksplorasi kawasan, pengunjung akan menemui beragam suasana alam, playground di darat dan di air, aviary, dan ruang komunal, yang menjadi persinggahan mereka sebelum sampai di satu area besar di utara kawasan. Area di utara ini berkonsep festival besar yang memberikan kesempatan pengunjung untuk mengeksplor dan menikmati beragam hidangan khas Sumatera Barat, langsung dari para perwakilan setiap kota-kabupaten di provinsi Sumatera Barat.",
     images: ["/havia-project-7.jpg", "/havia-project-6.jpg"],
   },
+  {
+    id: 9,
+    title: "GS House",
+    category: "Interior",
+    image: "/havia-project-19.jpg",
+    location: "Bandung",
+    year: "2021",
+    client: "GS House Owner",
+    scope: ["Interior"],
+    story:
+      "Owner menempati rumah dengan kondisi interior yang standar. Beliau mengharapkan desain interior yang merepresentasikan jiwa muda dan memberikan suasana hangat saat berkumpul bersama keluarga. Akhirnya diterapkan lah permainan suasana bohemian dan scandinavian.",
+    images: ["/havia-project-19.jpg", "/havia-project-20.jpg"],
+  },
 ];
 
 export default function Portfolio({ cmsData }: { cmsData: any }) {
@@ -169,7 +182,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
   const modalContentRef = useRef<HTMLDivElement | null>(null);
   const filterButtonRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const scrollTriggersRef = useRef<ScrollTrigger[]>([]);
+  const rowTriggersRef = useRef<ScrollTrigger[]>([]);
 
   const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
@@ -232,39 +245,55 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    scrollTriggersRef.current.forEach((st) => st.kill());
-    scrollTriggersRef.current = [];
+  useLayoutEffect(() => {
+    rowTriggersRef.current.forEach((st) => st.kill());
+    rowTriggersRef.current = [];
 
     if (!gridContainerRef.current) return;
 
     const items = gridItemsRef.current.filter((item) => item !== null);
     if (items.length === 0) return;
 
-    const animation = gsap.fromTo(
-      items,
-      { autoAlpha: 0, y: 40 },
-      {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: gridContainerRef.current,
-          start: "top 80%",
-          end: "bottom 20%",
-          toggleActions: "play none none reverse",
-        },
-      },
-    );
-
-    if (animation.scrollTrigger) {
-      scrollTriggersRef.current.push(animation.scrollTrigger);
+    const rows: HTMLDivElement[][] = [];
+    for (let i = 0; i < items.length; i += 3) {
+      rows.push(items.slice(i, i + 3));
     }
 
+    // Progressive scroll thresholds — each row requires more scrolling to appear
+    const rowStartPositions = ["top 85%", "top 65%", "top 50%"];
+
+    rows.forEach((row, rowIndex) => {
+      // Larger initial offset for rows further down
+      const yOffset = 60 + rowIndex * 20;
+      gsap.set(row, { autoAlpha: 0, y: yOffset });
+
+      const trigger = ScrollTrigger.create({
+        trigger: row[0],
+        start: rowStartPositions[rowIndex] || "top 50%",
+        onEnter: () => {
+          gsap.to(row, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.9 + rowIndex * 0.1,
+            stagger: 0.2,
+            ease: "power3.out",
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(row, {
+            autoAlpha: 0,
+            y: yOffset,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: "power2.in",
+          });
+        },
+      });
+      rowTriggersRef.current.push(trigger);
+    });
+
     const headerLine = portfolioRef.current?.querySelector(".header-line");
-    if (headerLine) {
+    if (headerLine && !ScrollTrigger.getById("header-line")) {
       const headerTrigger = ScrollTrigger.create({
         trigger: portfolioRef.current,
         start: "top 80%",
@@ -275,23 +304,24 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             { width: "3rem", duration: 0.8, ease: "power2.out" },
           );
         },
-        onEnterBack: () => {
-          gsap.fromTo(
-            headerLine,
-            { width: 0 },
-            { width: "3rem", duration: 0.8, ease: "power2.out" },
-          );
+        onLeaveBack: () => {
+          gsap.to(headerLine, {
+            width: 0,
+            duration: 0.4,
+            ease: "power2.in",
+          });
         },
       });
-      scrollTriggersRef.current.push(headerTrigger);
+      rowTriggersRef.current.push(headerTrigger);
     }
 
     return () => {
-      scrollTriggersRef.current.forEach((st) => st.kill());
-      scrollTriggersRef.current = [];
+      rowTriggersRef.current.forEach((st) => st.kill());
+      rowTriggersRef.current = [];
     };
   }, [activeCategory, displayProjects]);
 
+  // ================= SCROLL SPY (unchanged) =================
   useEffect(() => {
     if (!selectedProject) return;
     const observer = new IntersectionObserver(
@@ -442,11 +472,8 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             </div>
           </div>
 
-          <div className="flex-1">
-            <div
-              ref={gridContainerRef}
-              className="grid grid-cols-3 gap-8 min-h-[600px] lg:min-h-[700px]"
-            >
+          <div className="flex-1 min-h-[700px]">
+            <div ref={gridContainerRef} className="grid grid-cols-3 gap-8">
               {displayProjects.map((project, idx) => (
                 <div
                   key={project.id}
@@ -559,9 +586,17 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             </div>
           )}
           <div className="grid grid-cols-1 gap-6 min-h-[400px]">
-            {displayProjects.map((project) => (
-              <div
+            {displayProjects.map((project, idx) => (
+              <motion.div
                 key={project.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{
+                  duration: 0.7,
+                  ease: "easeOut",
+                  delay: idx === 0 ? 0 : 0.1,
+                }}
                 onClick={() => {
                   setSelectedProject(project);
                   setActiveImage(0);
@@ -587,323 +622,332 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                   <span className="truncate">{project.location}</span>
                   <span className="ml-2 flex-shrink-0">{project.year}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* MODAL and LIGHTBOX*/}
-      {selectedProject && (
-        <div
-          className="fixed inset-0 z-50 overflow-hidden font-sans"
-          style={{ backgroundColor: "#ffffff" }}
-        >
-          <div className="absolute top-0 left-0 right-0 z-[70] hidden lg:block">
-            <Header />
-          </div>
-
-          <div className="fixed top-20 left-6 z-[70]">
-            <div className="max-w-7xl">
-              <button
-                onClick={closeModal}
-                className="inline-flex items-center gap-1 text-[12px] text-[#2c2a29]/20 hover:text-[#c69c3d] transition-colors"
-              >
-                <Undo2 size={18} />
-                Back to home
-              </button>
-            </div>
-          </div>
-
-          {/* Desktop Layout */}
-          <div className="hidden lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
-            <div
-              className="flex flex-col justify-center overflow-y-auto p-4 scrollbar-hide"
-              style={{ backgroundColor: "#ffffff" }}
-            >
-              <div className="space-y-4">
-                {selectedProject.images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => scrollToImage(i)}
-                    className={`relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
-                      activeImage === i
-                        ? "scale-[0.98]"
-                        : "opacity-60 hover:opacity-100"
-                    }`}
-                    style={{
-                      boxShadow:
-                        activeImage === i
-                          ? `0 0 0 2px ${i === activeImage ? "#c69c3d" : "#9ca3af"}`
-                          : "none",
-                    }}
-                  >
-                    <Image
-                      src={img}
-                      alt={`Thumbnail ${i + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              ref={modalContentRef}
-              className="overflow-y-auto scroll-smooth px-10 py-10 space-y-10 scrollbar-hide justify-items-center"
-              style={{ scrollBehavior: "smooth", backgroundColor: "#ffffff" }}
-            >
-              {selectedProject.images.map((img, i) => (
-                <div
-                  key={i}
-                  ref={setImageRef(i)}
-                  data-index={i}
-                  className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
-                  onClick={() => openLightbox(i)}
-                >
-                  <Image
-                    src={img}
-                    alt=""
-                    fill
-                    className="object-cover rounded-lg"
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="overflow-y-auto p-8 scrollbar-hide"
-              style={{ backgroundColor: "#ffffff" }}
-            >
-              <div className="space-y-8">
-                <div>
-                  <h2
-                    className="text-2xl font-medium tracking-tight mb-2"
-                    style={{ color: "#2c2a29" }}
-                  >
-                    {selectedProject.title}
-                  </h2>
-                  <div
-                    className="w-12 h-[2px]"
-                    style={{ backgroundColor: "#c69c3d" }}
-                  />
-                </div>
-
-                <div className="space-y-3 text-sm">
-                  <div style={{ color: "#2c2a29" }}>
-                    <span className="text-gray-400 w-20 inline-block">
-                      Location
-                    </span>
-                    <span className="font-medium">
-                      {selectedProject.location}
-                    </span>
-                  </div>
-                  <div style={{ color: "#2c2a29" }}>
-                    <span className="text-gray-400 w-20 inline-block">
-                      Year
-                    </span>
-                    <span className="font-medium">{selectedProject.year}</span>
-                  </div>
-                  {selectedProject.client && (
-                    <div style={{ color: "#2c2a29" }}>
-                      <span className="text-gray-400 w-20 inline-block">
-                        Client
-                      </span>
-                      <span className="font-medium">
-                        {selectedProject.client}
-                      </span>
-                    </div>
-                  )}
-                  <div style={{ color: "#2c2a29" }}>
-                    <span className="text-gray-400 w-20 inline-block">
-                      Category
-                    </span>
-                    <span className="font-medium">
-                      {selectedProject.category}
-                    </span>
-                  </div>
-                </div>
-
-                {selectedProject.scope && (
-                  <div className="space-y-3 text-sm">
-                    <span className="text-gray-400 w-20 inline-block">
-                      Scope
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedProject.scope.map((item, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs px-3 py-1.5 font-semibold"
-                          style={{
-                            backgroundColor: "#f2f1f0",
-                            color: "#2c2a29",
-                          }}
-                        >
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedProject.story && (
-                  <div className="pt-2 text-justify">
-                    <p className="text-sm leading-relaxed text-gray-400">
-                      {selectedProject.story}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Layout */}
-          <div className="lg:hidden h-full overflow-y-auto pb-8">
-            <div className="h-20" />
-
-            <div className="px-4">
+      {/* MODAL */}
+      <AnimatePresence>
+        {selectedProject && (
+          <motion.div
+            className="fixed inset-0 z-50 overflow-hidden font-sans"
+            style={{ backgroundColor: "#ffffff" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <div className="absolute top-0 left-0 right-0 z-[70] hidden lg:block">
               <Header />
             </div>
 
-            <div className="space-y-4 p-4 pt-6">
-              {selectedProject.images
-                .slice(0, mobileModalImageCount)
-                .map((img, i) => (
+            {/* DESKTOP LAYOUT */}
+            <div className="hidden lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
+              <div
+                className="flex flex-col justify-center overflow-y-auto p-4 scrollbar-hide"
+                style={{ backgroundColor: "#ffffff" }}
+              >
+                <div className="space-y-4">
+                  {selectedProject.images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToImage(i)}
+                      className={`relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
+                        activeImage === i
+                          ? "scale-[0.98]"
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                      style={{
+                        boxShadow:
+                          activeImage === i
+                            ? `0 0 0 2px ${i === activeImage ? "#c69c3d" : "#9ca3af"}`
+                            : "none",
+                      }}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${i + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                ref={modalContentRef}
+                className="overflow-y-auto scroll-smooth px-10 py-10 space-y-10 scrollbar-hide justify-items-center"
+                style={{ scrollBehavior: "smooth", backgroundColor: "#ffffff" }}
+              >
+                {selectedProject.images.map((img, i) => (
                   <div
                     key={i}
-                    className="relative w-full aspect-[16/9] cursor-pointer"
+                    ref={setImageRef(i)}
+                    data-index={i}
+                    className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
                     onClick={() => openLightbox(i)}
                   >
                     <Image
                       src={img}
-                      alt={`${selectedProject.title} - ${i + 1}`}
+                      alt=""
                       fill
                       className="object-cover rounded-lg"
                     />
                   </div>
                 ))}
+              </div>
 
-              {selectedProject.images.length > 3 && (
-                <button
-                  onClick={() => {
-                    if (mobileModalImageCount === 3) {
-                      setMobileModalImageCount(selectedProject.images.length);
-                    } else {
-                      setMobileModalImageCount(3);
-                    }
-                  }}
-                  className="w-full py-3 text-sm border border-gray-200 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-[#c69c3d] hover:text-[#c69c3d]"
-                  style={{ color: "#2c2a29" }}
-                >
-                  <span>
-                    {mobileModalImageCount === 3
-                      ? `Show ${selectedProject.images.length - 3} more pictures`
-                      : "Show less pictures"}
-                  </span>
-                  {mobileModalImageCount === 3 ? (
-                    <ChevronDown
-                      size={16}
-                      className="transition-transform group-hover:translate-y-0.5"
-                    />
-                  ) : (
-                    <ChevronUp
-                      size={16}
-                      className="transition-transform group-hover:-translate-y-0.5"
-                    />
-                  )}
-                </button>
-              )}
-            </div>
-
-            {/* Project details */}
-            <div className="px-4 mt-6">
-              <div className="space-y-6">
-                <div>
-                  <h2
-                    className="text-xl font-light tracking-tight mb-2"
-                    style={{ color: "#2c2a29" }}
-                  >
-                    {selectedProject.title}
-                  </h2>
-                  <div
-                    className="w-12 h-[2px]"
-                    style={{ backgroundColor: "#c69c3d" }}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-500 w-20 inline-block">
-                      Location
-                    </span>
-                    <span style={{ color: "#2c2a29" }}>
-                      {selectedProject.location}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-500 w-20 inline-block">
-                      Year
-                    </span>
-                    <span style={{ color: "#2c2a29" }}>
-                      {selectedProject.year}
-                    </span>
-                  </div>
-                  {selectedProject.client && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="text-gray-500 w-20 inline-block">
-                        Client
-                      </span>
-                      <span style={{ color: "#2c2a29" }}>
-                        {selectedProject.client}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-500 w-20 inline-block">
-                      Category
-                    </span>
-                    <span style={{ color: "#2c2a29" }}>
-                      {selectedProject.category}
-                    </span>
-                  </div>
-                </div>
-
-                {selectedProject.scope && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-500 w-20 inline-block">
-                      Scope
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedProject.scope.map((item, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs px-3 py-1.5"
-                          style={{
-                            backgroundColor: "#f2f1f0",
-                            color: "#2c2a29",
-                          }}
-                        >
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedProject.story && (
-                  <div className="text-justify">
-                    <p
-                      className="text-sm leading-relaxed"
+              <div
+                className="overflow-y-auto p-8 scrollbar-hide"
+                style={{ backgroundColor: "#ffffff" }}
+              >
+                <div className="space-y-8">
+                  <div>
+                    <h2
+                      className="text-2xl font-medium tracking-tight mb-2"
                       style={{ color: "#2c2a29" }}
                     >
-                      {selectedProject.story}
-                    </p>
+                      {selectedProject.title}
+                    </h2>
+                    <div
+                      className="w-12 h-[2px]"
+                      style={{ backgroundColor: "#c69c3d" }}
+                    />
                   </div>
-                )}
+
+                  <div className="space-y-3 text-sm">
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Location
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.location}
+                      </span>
+                    </div>
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Year
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.year}
+                      </span>
+                    </div>
+                    {selectedProject.client && (
+                      <div style={{ color: "#2c2a29" }}>
+                        <span className="text-gray-400 w-20 inline-block">
+                          Client
+                        </span>
+                        <span className="font-medium">
+                          {selectedProject.client}
+                        </span>
+                      </div>
+                    )}
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Category
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedProject.scope && (
+                    <div className="space-y-3 text-sm">
+                      <span className="text-gray-400 w-20 inline-block">
+                        Scope
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProject.scope.map((item, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs px-3 py-1.5 font-semibold"
+                            style={{
+                              backgroundColor: "#f2f1f0",
+                              color: "#2c2a29",
+                            }}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProject.story && (
+                    <div className="pt-2 text-justify">
+                      <p className="text-sm leading-relaxed text-gray-400">
+                        {selectedProject.story}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* MOBILE LAYOUT */}
+            <div className="lg:hidden h-full overflow-y-auto pb-8">
+              <div className="h-20" />
+              <div className="px-4">
+                <Header />
+              </div>
+              <div className="space-y-4 p-4 pt-6">
+                {selectedProject.images
+                  .slice(0, mobileModalImageCount)
+                  .map((img, i) => (
+                    <div
+                      key={i}
+                      className="relative w-full aspect-[16/9] cursor-pointer"
+                      onClick={() => openLightbox(i)}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${selectedProject.title} - ${i + 1}`}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                    </div>
+                  ))}
+                {selectedProject.images.length > 3 && (
+                  <button
+                    onClick={() => {
+                      if (mobileModalImageCount === 3) {
+                        setMobileModalImageCount(selectedProject.images.length);
+                      } else {
+                        setMobileModalImageCount(3);
+                      }
+                    }}
+                    className="w-full py-3 text-sm border border-gray-200 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-[#c69c3d] hover:text-[#c69c3d]"
+                    style={{ color: "#2c2a29" }}
+                  >
+                    <span>
+                      {mobileModalImageCount === 3
+                        ? `Show ${selectedProject.images.length - 3} more pictures`
+                        : "Show less pictures"}
+                    </span>
+                    {mobileModalImageCount === 3 ? (
+                      <ChevronDown
+                        size={16}
+                        className="transition-transform group-hover:translate-y-0.5"
+                      />
+                    ) : (
+                      <ChevronUp
+                        size={16}
+                        className="transition-transform group-hover:-translate-y-0.5"
+                      />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <div className="px-4 mt-6">
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="text-xl font-light tracking-tight mb-2"
+                      style={{ color: "#2c2a29" }}
+                    >
+                      {selectedProject.title}
+                    </h2>
+                    <div
+                      className="w-12 h-[2px]"
+                      style={{ backgroundColor: "#c69c3d" }}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Location
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.location}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Year
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.year}
+                      </span>
+                    </div>
+                    {selectedProject.client && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="text-gray-500 w-20 inline-block">
+                          Client
+                        </span>
+                        <span style={{ color: "#2c2a29" }}>
+                          {selectedProject.client}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Category
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedProject.scope && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Scope
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProject.scope.map((item, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs px-3 py-1.5"
+                            style={{
+                              backgroundColor: "#f2f1f0",
+                              color: "#2c2a29",
+                            }}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProject.story && (
+                    <div className="text-justify">
+                      <p
+                        className="text-sm leading-relaxed"
+                        style={{ color: "#2c2a29" }}
+                      >
+                        {selectedProject.story}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {selectedProject && (
+        <div className="fixed top-20 left-6 z-[70]">
+          <button
+            onClick={closeModal}
+            className="inline-flex items-center gap-2 text-sm text-[#2c2a29]/60 hover:text-[#c69c3d] transition-colors group"
+          >
+            <Undo2
+              size={16}
+              className="group-hover:-translate-x-0.5 transition-transform"
+            />
+            <span className="border-b border-transparent group-hover:border-[#c69c3d] transition-colors pb-0.5">
+              Back to home
+            </span>
+          </button>
         </div>
       )}
 

@@ -73,7 +73,8 @@ const galleryImages = [
   {
     id: 1,
     src: "/havia-gallery-2.jpg",
-    caption: "Studio Discussion - Brainstorming design konsep untuk proyek residensial",
+    caption:
+      "Studio Discussion - Brainstorming design konsep untuk proyek residensial",
   },
   {
     id: 2,
@@ -133,9 +134,13 @@ const galleryImages = [
 ];
 
 export default function AboutDetail() {
-  const [selectedMember, setSelectedMember] = useState<(typeof teamMembers)[0] | null>(null);
+  const [selectedMember, setSelectedMember] = useState<
+    (typeof teamMembers)[0] | null
+  >(null);
   const [memberIndex, setMemberIndex] = useState(0);
-  const [selectedImage, setSelectedImage] = useState<(typeof galleryImages)[0] | null>(null);
+  const [selectedImage, setSelectedImage] = useState<
+    (typeof galleryImages)[0] | null
+  >(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const openLightbox = (image: (typeof galleryImages)[0], index: number) => {
@@ -152,7 +157,8 @@ export default function AboutDetail() {
   };
 
   const prevImage = () => {
-    const newIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+    const newIndex =
+      (currentIndex - 1 + galleryImages.length) % galleryImages.length;
     setSelectedImage(galleryImages[newIndex]);
     setCurrentIndex(newIndex);
   };
@@ -171,7 +177,8 @@ export default function AboutDetail() {
   };
 
   const prevMember = () => {
-    const newIndex = (memberIndex - 1 + teamMembers.length) % teamMembers.length;
+    const newIndex =
+      (memberIndex - 1 + teamMembers.length) % teamMembers.length;
     setSelectedMember(teamMembers[newIndex]);
     setMemberIndex(newIndex);
   };
@@ -179,20 +186,23 @@ export default function AboutDetail() {
   return (
     <main className="min-h-screen bg-[var(--havia-offwhite)] pt-20 font-sans">
       <Header />
-
-      {/* Back link */}
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <Link
           href="/#about"
-          className="inline-flex items-center gap-1 text-xs text-[var(--havia-charcoal)]/20 hover:text-[var(--havia-gold)] transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-sm text-[var(--havia-charcoal)]/60 hover:text-[var(--havia-gold)] transition-colors mb-4 group"
         >
-          <Undo2 size={18} />
-          Back to home
+          <Undo2
+            size={16}
+            className="group-hover:-translate-x-0.5 transition-transform"
+          />
+          <span className="border-b border-transparent group-hover:border-[var(--havia-gold)] transition-colors pb-0.5">
+            Back to home
+          </span>
         </Link>
       </div>
 
       {/* About Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-12 md:pt-20">
+      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-12 md:pt-20 mb-16 md:mb-24">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4">
             <motion.div
@@ -207,9 +217,9 @@ export default function AboutDetail() {
               <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
             </motion.div>
             <p className="text-sm text-[var(--havia-charcoal)]/60 leading-relaxed text-justify">
-              Havia Studio adalah studio arsitektur yang berfokus pada kolaborasi, eksplorasi
-              material, dan hubungan antara ruang dan lingkungan. Setiap proyek adalah dialog
-              antara fungsi dan emosi.
+              Havia Studio adalah studio arsitektur yang berfokus pada
+              kolaborasi, eksplorasi material, dan hubungan antara ruang dan
+              lingkungan. Setiap proyek adalah dialog antara fungsi dan emosi.
             </p>
           </div>
           <div className="relative aspect-[5/2] overflow-hidden">
@@ -224,49 +234,50 @@ export default function AboutDetail() {
       </section>
 
       {/* Team Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[var(--havia-charcoal)]">
-            Our Team
-          </h2>
-          <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
-        </motion.div>
+      <section className="bg-[#eae7e2] py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[var(--havia-charcoal)]">
+              Our Team
+            </h2>
+            <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
+          </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {teamMembers.map((member, index) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="group cursor-pointer"
-              onClick={() => openMember(member, index)}
-            >
-              <div className="overflow-hidden transition-all duration-500 max-h-[300px] mb-3 md:max-h-0 md:mb-0 md:group-hover:max-h-[300px] md:group-hover:mb-3">
-                <div className="relative aspect-square bg-[var(--havia-charcoal)]/5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {teamMembers.map((member, index) => (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className="group cursor-pointer"
+                onClick={() => openMember(member, index)}
+              >
+                <div className="relative aspect-square overflow-hidden bg-[var(--havia-charcoal)]/5 mb-3">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover transition-all duration-700"
+                    className="object-cover transition-all duration-700 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
                 </div>
-              </div>
-              <div>
-                <h3 className="text-sm text-[var(--havia-charcoal)] font-light leading-tight">
-                  {member.name}
-                </h3>
-                <p className="text-[10px] text-[var(--havia-charcoal)]/40 uppercase tracking-wider mt-0.5">
-                  {member.role}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+                <div>
+                  <h3 className="text-sm text-[var(--havia-charcoal)] font-light leading-tight">
+                    {member.name}
+                  </h3>
+                  <p className="text-[10px] text-[var(--havia-charcoal)]/40 uppercase tracking-wider mt-0.5">
+                    {member.role}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -287,7 +298,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               prevMember();
             }}
-            className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute left-4 md:left-6 top-[40%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
@@ -296,7 +307,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               nextMember();
             }}
-            className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute right-4 md:right-6 top-[40%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
@@ -313,11 +324,15 @@ export default function AboutDetail() {
               />
             </div>
             <div className="text-white">
-              <h3 className="text-2xl font-light mb-2">{selectedMember.name}</h3>
+              <h3 className="text-2xl font-light mb-2">
+                {selectedMember.name}
+              </h3>
               <p className="text-xs uppercase tracking-wider text-white/50 mb-4">
                 {selectedMember.role}
               </p>
-              <p className="text-sm text-white/70">{selectedMember.description}</p>
+              <p className="text-sm text-white/70">
+                {selectedMember.description}
+              </p>
               <p className="text-xs text-white/40 mt-6">
                 {memberIndex + 1} / {teamMembers.length}
               </p>
@@ -326,55 +341,52 @@ export default function AboutDetail() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        <div className="h-[1px] bg-[var(--havia-charcoal)]/10" />
-      </div>
-
       {/* Life at Havia Gallery */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[var(--havia-charcoal)]">
-            Life at Havia
-          </h2>
-          <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
-        </motion.div>
+      <section className="bg-[var(--havia-offwhite)] py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-[var(--havia-charcoal)]">
+              Life at Havia
+            </h2>
+            <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
+          </motion.div>
 
-        {/* Grid layout – stabil dan responsif */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {galleryImages.map((img, index) => (
-            <motion.div
-              key={img.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.03 }}
-              className="cursor-pointer group"
-              onClick={() => openLightbox(img, index)}
-            >
-              <div className="relative overflow-hidden bg-[var(--havia-charcoal)]/5 aspect-[4/3]">
-                <Image
-                  src={img.src}
-                  alt={img.caption}
-                  fill
-                  className="object-cover transition-all duration-700 group-hover:scale-105"
-                />
-              </div>
-              {/* Caption hanya tampil di mobile (opsional) */}
-              <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
-                {img.caption}
-              </p>
-            </motion.div>
-          ))}
+          {/* Grid layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {galleryImages.map((img, index) => (
+              <motion.div
+                key={img.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.03 }}
+                className="cursor-pointer group"
+                onClick={() => openLightbox(img, index)}
+              >
+                <div className="relative overflow-hidden bg-[var(--havia-charcoal)]/5 aspect-[4/3]">
+                  <Image
+                    src={img.src}
+                    alt={img.caption}
+                    fill
+                    className="object-cover transition-all duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
+                  {img.caption}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Gallery Lightbox – Caption langsung di bawah gambar */}
+      {/* Gallery Lightbox */}
       {selectedImage && (
         <div
           className="fixed inset-0 z-50 bg-[var(--havia-charcoal)]/95 flex items-center justify-center p-4"
@@ -391,7 +403,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               prevImage();
             }}
-            className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute left-4 md:left-6 top-[45%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
@@ -400,7 +412,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               nextImage();
             }}
-            className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute right-4 md:right-6 top-[45%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
