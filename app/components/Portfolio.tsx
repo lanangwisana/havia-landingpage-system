@@ -259,20 +259,33 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       rows.push(items.slice(i, i + 3));
     }
 
-    rows.forEach((row) => {
-      gsap.set(row, { autoAlpha: 0, y: 40 });
+    // Progressive scroll thresholds — each row requires more scrolling to appear
+    const rowStartPositions = ["top 85%", "top 65%", "top 50%"];
+
+    rows.forEach((row, rowIndex) => {
+      // Larger initial offset for rows further down
+      const yOffset = 60 + rowIndex * 20;
+      gsap.set(row, { autoAlpha: 0, y: yOffset });
 
       const trigger = ScrollTrigger.create({
         trigger: row[0],
-        start: "top 80%",
-        once: true,
+        start: rowStartPositions[rowIndex] || "top 50%",
         onEnter: () => {
           gsap.to(row, {
             autoAlpha: 1,
             y: 0,
-            duration: 0.8,
-            stagger: 0.1,
+            duration: 0.9 + rowIndex * 0.1,
+            stagger: 0.2,
             ease: "power3.out",
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(row, {
+            autoAlpha: 0,
+            y: yOffset,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: "power2.in",
           });
         },
       });
@@ -284,13 +297,19 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       const headerTrigger = ScrollTrigger.create({
         trigger: portfolioRef.current,
         start: "top 80%",
-        once: true,
         onEnter: () => {
           gsap.fromTo(
             headerLine,
             { width: 0 },
             { width: "3rem", duration: 0.8, ease: "power2.out" },
           );
+        },
+        onLeaveBack: () => {
+          gsap.to(headerLine, {
+            width: 0,
+            duration: 0.4,
+            ease: "power2.in",
+          });
         },
       });
       rowTriggersRef.current.push(headerTrigger);
@@ -567,9 +586,17 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             </div>
           )}
           <div className="grid grid-cols-1 gap-6 min-h-[400px]">
-            {displayProjects.map((project) => (
-              <div
+            {displayProjects.map((project, idx) => (
+              <motion.div
                 key={project.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{
+                  duration: 0.7,
+                  ease: "easeOut",
+                  delay: idx === 0 ? 0 : 0.1,
+                }}
                 onClick={() => {
                   setSelectedProject(project);
                   setActiveImage(0);
@@ -595,7 +622,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                   <span className="truncate">{project.location}</span>
                   <span className="ml-2 flex-shrink-0">{project.year}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
