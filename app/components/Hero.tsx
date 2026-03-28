@@ -49,7 +49,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
   const [showCursor, setShowCursor] = useState(false);
   const [hoverExplore, setHoverExplore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false); // untuk trigger animasi masuk
 
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -124,12 +124,33 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     window.addEventListener("mousemove", move);
-    setTimeout(() => setHasAnimated(true), 100);
+
+    setHasAnimated(true);
+
     return () => {
       window.removeEventListener("resize", checkMobile);
       window.removeEventListener("mousemove", move);
     };
   }, []);
+
+  const entranceVariants: Variants = {
+    hidden: {
+      y: "100%",
+      opacity: 0,
+      filter: "blur(8px)",
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        duration: 1.0,
+        ease: [0.4, 0, 0.2, 1], 
+        staggerChildren: 0.08,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -273,11 +294,15 @@ export default function Hero({ cmsData }: { cmsData: any }) {
             key={project.id}
             variants={itemVariants}
             onMouseEnter={() => setActiveIndex(index)}
+            // Seluruh card dapat diklik hanya jika aktif
+            onClick={
+              isActive ? () => handleExploreClick(project.category) : undefined
+            }
             className={`
-              relative h-full overflow-hidden cursor-none
-              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-              ${isActive ? "flex-[4]" : "flex-[1]"}
-            `}
+            relative h-full overflow-hidden
+            transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+            ${isActive ? "flex-[4] cursor-none" : "flex-[1] cursor-none"}
+          `}
           >
             <div className="absolute inset-0">
               <Image
@@ -321,11 +346,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6, duration: 0.5 }}
-                    className="group cursor-none"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleExploreClick(project.category);
-                    }}
+                    className="group"
                   >
                     <div className="flex items-center gap-3 flex-wrap justify-center">
                       <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
@@ -359,11 +380,14 @@ export default function Hero({ cmsData }: { cmsData: any }) {
   );
 
   return (
-    <section
+    <motion.section
       ref={sectionRef}
       className="relative w-full bg-[var(--havia-offwhite)] py-12 md:py-18 overflow-hidden mt-10"
       onMouseEnter={() => !isMobile && setShowCursor(true)}
       onMouseLeave={() => !isMobile && setShowCursor(false)}
+      initial="hidden"
+      animate={hasAnimated ? "visible" : "hidden"}
+      variants={entranceVariants}
     >
       <motion.div
         ref={containerRef}
@@ -470,6 +494,6 @@ export default function Hero({ cmsData }: { cmsData: any }) {
           </div>
         </motion.div>
       )}
-    </section>
+    </motion.section>
   );
 }
