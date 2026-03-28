@@ -3,83 +3,111 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function Header({ cmsData }: { cmsData: any }) {
+export default function Header({ cmsData }: { cmsData?: any }) {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const menuItems = [
+    { label: "Projects", href: "#portfolio" },
+    { label: "About", href: "#about" },
+    { label: "Client", href: "#trust" },
+    { label: "Contact", href: "#contact" },
+  ];
+
+  const handleMenuClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const targetId = href.substring(1);
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      // Tutup menu
+      setMobileOpen(false);
+      // Scroll ke target dengan smooth behavior (menggunakan CSS scroll-margin-top)
+      setTimeout(() => {
+        targetElement.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      console.warn(`Element with id "${targetId}" not found.`);
+      // Fallback
+      window.location.href = href;
+      setMobileOpen(false);
+    }
+  };
+
   return (
-    <>
-      <header className="fixed top-6 left-0 w-full z-50 flex justify-center px-6">
-        <div
-          className={`transition-all duration-500 rounded-full border 
-          ${scrolled 
-            ? "w-full max-w-5xl bg-black/60 backdrop-blur-3xl border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.4)]" 
-            : "w-full max-w-3xl bg-white/10 backdrop-blur-xl border-white/20"}`}
-        >
-          <nav
-            className={`flex items-center justify-between transition-all duration-500
-            ${scrolled ? "px-5 py-2.5" : "px-4 py-2.5"}`}
-          >
-            {/* Logo */}
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        scrolled ? "bg-white/90 backdrop-blur-md shadow-sm" : "bg-transparent"
+      } h-16`}
+    >
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+        {/* LOGO */}
+        <a href="/" className="relative w-20 h-6">
+          <Image
+            src="/logo-havia-primary-black.png"
+            alt="Havia Studio"
+            fill
+            className="object-contain"
+          />
+        </a>
+
+        {/* DESKTOP NAV */}
+        <nav className="hidden md:flex items-center gap-7">
+          {menuItems.map((item) => (
             <a
-              href="#hero"
-              className={`relative transition-all duration-500 
-              ${scrolled ? "w-[120px] h-[32px]" : "w-[105px] h-[26px]"}`}
+              key={item.label}
+              href={item.href}
+              className="relative text-[12px] tracking-[0.2em] text-[#2c2a29]/80 hover:text-[#2c2a29] transition-colors group"
             >
-              <Image
-                src="/logo-havia-primary-white.png"
-                alt="Havia Studio Logo"
-                fill
-                priority
-                className="object-contain"
-              />
+              {item.label}
+              <span className="absolute -bottom-1 left-0 h-[1px] bg-[#c69c3d] transition-all duration-300 w-0 group-hover:w-full" />
             </a>
+          ))}
+        </nav>
 
-            {/* Desktop Menu */}
-            <ul
-              className={`hidden md:flex items-center uppercase tracking-[0.2em] text-white transition-all duration-500
-              ${scrolled ? "gap-10 text-xs" : "gap-8 text-[11px]"}`}
-            >
-              <li><a href="#about" className="hover:text-[var(--havia-gold)] transition">About</a></li>
-              <li><a href="#portfolio" className="hover:text-[var(--havia-gold)] transition">Portfolio</a></li>
-              <li><a href="#trust" className="hover:text-[var(--havia-gold)] transition">Testimonial</a></li>
-              <li><a href="#contact" className="hover:text-[var(--havia-gold)] transition">Contact</a></li>
-            </ul>
+        {/* MOBILE BUTTON */}
+        <button
+          className="md:hidden text-[#2c2a29]"
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-white"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Mobile Menu Dropdown */}
-      {menuOpen && (
-        <div className="fixed top-24 left-0 w-full flex justify-center z-40 px-6 md:hidden">
-          <div className="w-full max-w-md rounded-2xl bg-black/70 backdrop-blur-2xl border border-white/10 p-6 shadow-xl">
-            <ul className="flex flex-col items-center gap-6 uppercase tracking-[0.2em] text-white text-sm">
-              <li><a href="#about" onClick={()=>setMenuOpen(false)}>About</a></li>
-              <li><a href="#portfolio" onClick={()=>setMenuOpen(false)}>Portfolio</a></li>
-              <li><a href="#trust" onClick={()=>setMenuOpen(false)}>Testimonial</a></li>
-              <li><a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a></li>
-            </ul>
-          </div>
-        </div>
-      )}
-    </>
+      {/* MOBILE MENU */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="md:hidden overflow-hidden bg-white/90 border-t border-[#2c2a29]/10"
+            style={{ zIndex: 999 }}
+          >
+            <div className="px-6 pt-6 pb-8 flex flex-col gap-6">
+              {menuItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleMenuClick(e, item.href)}
+                  className="text-sm uppercase tracking-[0.2em] text-[#2c2a29] hover:text-[#c69c3d] transition-colors"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 }
