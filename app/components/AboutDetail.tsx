@@ -298,7 +298,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               prevMember();
             }}
-            className="absolute left-4 md:left-6 top-[35%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute left-4 md:left-6 top-[40%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
@@ -307,7 +307,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               nextMember();
             }}
-            className="absolute right-4 md:right-6 top-[35%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute right-4 md:right-6 top-[40%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
@@ -403,7 +403,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               prevImage();
             }}
-            className="absolute left-4 md:left-6 top-[35%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute left-4 md:left-6 top-[45%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
@@ -412,7 +412,7 @@ export default function AboutDetail() {
               e.stopPropagation();
               nextImage();
             }}
-            className="absolute right-4 md:right-6 top-[35%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            className="absolute right-4 md:right-6 top-[45%] md:top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
