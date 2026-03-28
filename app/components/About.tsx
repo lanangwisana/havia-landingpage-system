@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
@@ -53,6 +53,8 @@ export default function About({ cmsData }: { cmsData: any }) {
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const contextRef = useRef<gsap.Context | null>(null);
+  const router = useRouter();
 
   const accent = cmsData?.landingpage_about_accent || "About Havia";
   const p1 =
@@ -71,6 +73,35 @@ export default function About({ cmsData }: { cmsData: any }) {
 
   const stat1Val = parseInt(stat1ValRaw);
   const stat2Val = parseInt(stat2ValRaw);
+
+  const killAnimations = useCallback(() => {
+    if (sectionRef.current) {
+      ScrollTrigger.getAll().forEach((st) => {
+        if (st.vars.trigger === sectionRef.current) {
+          st.kill();
+        }
+      });
+    }
+    if (contextRef.current) {
+      contextRef.current.revert();
+      contextRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      killAnimations();
+    };
+  }, [killAnimations]);
+
+  const handleNavigate = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      e.preventDefault();
+      killAnimations();
+      router.push(href);
+    },
+    [killAnimations, router],
+  );
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -92,29 +123,16 @@ export default function About({ cmsData }: { cmsData: any }) {
     if (!sectionRef.current) return;
 
     ScrollTrigger.getAll().forEach((st) => {
-      if (st.vars.trigger === sectionRef.current) st.kill();
+      if (st.vars.trigger === sectionRef.current) {
+        st.kill();
+      }
     });
 
-    const ctx = gsap.context(() => {
-      gsap.set(
-        [
-          ".about-accent",
-          ".about-desc",
-          ".about-stats",
-          ".about-image",
-          ".about-cta",
-        ],
-        {
-          opacity: 0,
-        },
-      );
-      gsap.set(".about-accent", { y: 100 });
-      gsap.set(".about-accent-line", { width: 0 });
-      gsap.set(".about-desc", { y: 50 });
-      gsap.set(".about-stats", { y: 30 });
-      gsap.set(".about-image", { scale: 0.9, x: 50 });
-      gsap.set(".about-cta", { y: 20 });
+    if (contextRef.current) {
+      contextRef.current.revert();
+    }
 
+    const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -127,40 +145,22 @@ export default function About({ cmsData }: { cmsData: any }) {
         },
       });
 
-      tl.to(".about-accent", {
-        opacity: 1,
-        y: 0,
-        duration: 1.5,
-        ease: "power2.out",
-      })
-        .to(
-          ".about-accent-line",
-          { width: 40, duration: 0.8, ease: "power2.out" },
-          "<",
-        )
-        .to(
-          ".about-desc",
-          { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
-          "+=0.3",
-        )
-        .to(
-          ".about-stats",
-          { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" },
-          "+=0.3",
-        )
-        .to(
-          ".about-image",
-          { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" },
-          "+=0.3",
-        )
-        .to(
-          ".about-cta",
-          { opacity: 1, y: 0, duration: 1, ease: "power2.out" },
-          "+=0.3",
-        );
+      tl.to(".about-accent", { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" })
+        .to(".about-accent-line", { width: 40, duration: 0.8, ease: "power2.out" }, "<")
+        .to(".about-desc", { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }, "+=0.3")
+        .to(".about-stats", { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" }, "+=0.3")
+        .to(".about-image", { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" }, "+=0.3")
+        .to(".about-cta", { opacity: 1, y: 0, duration: 1, ease: "power2.out" }, "+=0.3");
     }, sectionRef);
 
-    return () => ctx.revert();
+    contextRef.current = ctx;
+
+    return () => {
+      if (contextRef.current) {
+        contextRef.current.revert();
+        contextRef.current = null;
+      }
+    };
   }, [isMobile]);
 
   return (
@@ -171,18 +171,19 @@ export default function About({ cmsData }: { cmsData: any }) {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-6 py-12 md:py-20 min-h-screen flex flex-col justify-center">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          {/* Left column */}
           <div>
-            <div className="about-accent">
+            <div className="about-accent opacity-0 translate-y-24">
               <h2
                 className="text-3xl md:text-5xl font-light uppercase tracking-[2px]"
                 style={{ fontFamily: "'Helvetica', Helvetica, sans-serif" }}
               >
                 {accent}
               </h2>
-              <div className="about-accent-line h-px bg-[var(--havia-gold)] mt-2 md:mt-3" />
+              <div className="about-accent-line h-px bg-[var(--havia-gold)] mt-2 md:mt-3 w-0" />
             </div>
 
-            <div className="about-desc mt-8 space-y-4">
+            <div className="about-desc opacity-0 translate-y-12 mt-8 space-y-4">
               <p className="text-sm md:text-base text-[var(--havia-offwhite)]/80 leading-relaxed font-sans">
                 {p1}
               </p>
@@ -191,7 +192,7 @@ export default function About({ cmsData }: { cmsData: any }) {
               </p>
             </div>
 
-            <div className="about-stats mt-10 flex gap-12">
+            <div className="about-stats opacity-0 translate-y-8 mt-10 flex gap-12">
               <div>
                 <p
                   className="text-3xl md:text-4xl font-light text-[var(--havia-gold)]"
@@ -220,26 +221,27 @@ export default function About({ cmsData }: { cmsData: any }) {
               </div>
             </div>
 
-            <div className="about-cta mt-12 hidden lg:block">
-              <Link
+            {/* Desktop button */}
+            <div className="about-cta opacity-0 translate-y-6 mt-12 hidden lg:block">
+              <a
                 href="/about?tab=team"
-                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300"
+                onClick={(e) => handleNavigate(e, "/about?tab=team")}
+                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300 cursor-pointer"
               >
                 <span className="text-xs uppercase tracking-wider font-sans">
                   View More
                 </span>
-                <ArrowRight
-                  size={14}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </Link>
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+              </a>
             </div>
           </div>
 
+          {/* Right column: Image + mobile button */}
           <div>
-            <Link
+            <a
               href="/about?tab=team"
-              className="about-image relative aspect-[4/3] w-full overflow-hidden rounded-lg shadow-2xl block cursor-none"
+              onClick={(e) => handleNavigate(e, "/about?tab=team")}
+              className="about-image opacity-0 scale-95 translate-x-12 relative aspect-[4/3] w-full overflow-hidden rounded-lg shadow-2xl block cursor-none"
               onMouseEnter={() => !isMobile && setIsHoveringImage(true)}
               onMouseLeave={() => !isMobile && setIsHoveringImage(false)}
             >
@@ -257,21 +259,20 @@ export default function About({ cmsData }: { cmsData: any }) {
                   Creative minds behind the work
                 </p>
               </div>
-            </Link>
+            </a>
 
-            <div className="about-cta mt-8 lg:hidden">
-              <Link
+            {/* Mobile button */}
+            <div className="about-cta opacity-0 translate-y-6 mt-8 lg:hidden">
+              <a
                 href="/about?tab=team"
-                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300"
+                onClick={(e) => handleNavigate(e, "/about?tab=team")}
+                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300 cursor-pointer"
               >
                 <span className="text-xs uppercase tracking-wider font-sans">
                   View More
                 </span>
-                <ArrowRight
-                  size={14}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </Link>
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+              </a>
             </div>
           </div>
         </div>
