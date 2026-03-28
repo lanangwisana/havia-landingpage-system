@@ -133,24 +133,56 @@ export default function About({ cmsData }: { cmsData: any }) {
     }
 
     const ctx = gsap.context(() => {
+      gsap.set(".about-accent", { opacity: 0, y: 100 });
+      gsap.set(".about-accent-line", { width: 0 });
+      gsap.set(".about-desc", { opacity: 0, y: 50 });
+      gsap.set(".about-stats", { opacity: 0, y: 30 });
+      gsap.set(".about-image", { opacity: 0, scale: 0.9, x: 50 });
+      gsap.set(".about-cta", { opacity: 0, y: 20 });
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: isMobile ? "top 80%" : "top top",
-          end: isMobile ? "+=100%" : "+=400%",
-          scrub: isMobile ? 1 : 2,
-          pin: !isMobile,
+          start: "top 90%",
+          end: "+=100%",
+          scrub: 1.2,
+          pin: false,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      tl.to(".about-accent", { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" })
-        .to(".about-accent-line", { width: 40, duration: 0.8, ease: "power2.out" }, "<")
-        .to(".about-desc", { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }, "+=0.3")
-        .to(".about-stats", { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" }, "+=0.3")
-        .to(".about-image", { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" }, "+=0.3")
-        .to(".about-cta", { opacity: 1, y: 0, duration: 1, ease: "power2.out" }, "+=0.3");
+      tl.to(".about-accent", {
+        opacity: 1,
+        y: 0,
+        duration: 1.5,
+        ease: "power2.out",
+      })
+        .to(
+          ".about-accent-line",
+          { width: 40, duration: 0.8, ease: "power2.out" },
+          "<",
+        )
+        .to(
+          ".about-desc",
+          { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-stats",
+          { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-image",
+          { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" },
+          "+=0.3",
+        )
+        .to(
+          ".about-cta",
+          { opacity: 1, y: 0, duration: 1, ease: "power2.out" },
+          "+=0.3",
+        );
     }, sectionRef);
 
     contextRef.current = ctx;
@@ -161,7 +193,7 @@ export default function About({ cmsData }: { cmsData: any }) {
         contextRef.current = null;
       }
     };
-  }, [isMobile]);
+  }, []);
 
   return (
     <section
@@ -231,12 +263,15 @@ export default function About({ cmsData }: { cmsData: any }) {
                 <span className="text-xs uppercase tracking-wider font-sans">
                   View More
                 </span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                <ArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-1"
+                />
               </a>
             </div>
           </div>
 
-          {/* Right column: Image + mobile button */}
+          {/* Right column */}
           <div>
             <a
               href="/about?tab=team"
@@ -271,7 +306,10 @@ export default function About({ cmsData }: { cmsData: any }) {
                 <span className="text-xs uppercase tracking-wider font-sans">
                   View More
                 </span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                <ArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-1"
+                />
               </a>
             </div>
           </div>
