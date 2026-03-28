@@ -184,10 +184,10 @@ export default function AboutDetail() {
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <Link
           href="/#about"
-          className="inline-flex items-center gap-1 text-xs text-[var(--havia-charcoal)]/20 hover:text-[var(--havia-gold)] transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-sm text-[var(--havia-charcoal)]/60 hover:text-[var(--havia-gold)] transition-colors mb-4 group"
         >
-          <Undo2 size={18} />
-          Back to home
+          <Undo2 size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+          <span className="border-b border-transparent group-hover:border-[var(--havia-gold)] transition-colors pb-0.5">Back to home</span>
         </Link>
       </div>
 
@@ -224,7 +224,8 @@ export default function AboutDetail() {
       </section>
 
       {/* Team Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20">
+      <section className="bg-[#eae7e2] py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,7 +238,7 @@ export default function AboutDetail() {
           <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {teamMembers.map((member, index) => (
             <motion.div
               key={member.id}
@@ -247,15 +248,14 @@ export default function AboutDetail() {
               className="group cursor-pointer"
               onClick={() => openMember(member, index)}
             >
-              <div className="overflow-hidden transition-all duration-500 max-h-[300px] mb-3 md:max-h-0 md:mb-0 md:group-hover:max-h-[300px] md:group-hover:mb-3">
-                <div className="relative aspect-square bg-[var(--havia-charcoal)]/5">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover transition-all duration-700"
-                  />
-                </div>
+              <div className="relative aspect-square overflow-hidden bg-[var(--havia-charcoal)]/5 mb-3">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  fill
+                  className="object-cover transition-all duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
               </div>
               <div>
                 <h3 className="text-sm text-[var(--havia-charcoal)] font-light leading-tight">
@@ -267,6 +267,7 @@ export default function AboutDetail() {
               </div>
             </motion.div>
           ))}
+        </div>
         </div>
       </section>
 
@@ -326,12 +327,9 @@ export default function AboutDetail() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        <div className="h-[1px] bg-[var(--havia-charcoal)]/10" />
-      </div>
-
       {/* Life at Havia Gallery */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20">
+      <section className="bg-[var(--havia-cream)]/40 py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -371,6 +369,7 @@ export default function AboutDetail() {
               </p>
             </motion.div>
           ))}
+        </div>
         </div>
       </section>
 

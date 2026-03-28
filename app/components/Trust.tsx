@@ -473,7 +473,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                       src={logo}
                       alt="Client Logo"
                       fill
-                      className="object-contain p-3 md:p-4 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                      className="object-contain p-3 md:p-4 opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                     />
                   </div>
                 </div>
