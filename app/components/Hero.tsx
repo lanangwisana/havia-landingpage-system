@@ -80,23 +80,19 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     }
   };
 
-  const paginate = useCallback(
-    (newDirection: number) => {
-      setMobileSlide(([prev]) => {
-        let next = prev + newDirection;
-        if (next < 0) next = projects.length - 1;
-        if (next >= projects.length) next = 0;
-        return [next, newDirection];
-      });
-    },
-    [],
-  );
+  const paginate = useCallback((newDirection: number) => {
+    setMobileSlide(([prev]) => {
+      let next = prev + newDirection;
+      if (next < 0) next = projects.length - 1;
+      if (next >= projects.length) next = 0;
+      return [next, newDirection];
+    });
+  }, []);
 
   const goToSlide = useCallback((index: number) => {
     setMobileSlide(([prev]) => [index, index > prev ? 1 : -1]);
   }, []);
 
-  // Auto-advance for mobile carousel
   useEffect(() => {
     if (!isMobile) return;
     autoPlayRef.current = setInterval(() => paginate(1), 5000);
@@ -163,7 +159,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     },
   };
 
-  // ── Mobile Carousel Layout ──
+  // Mobile Carousel Layout
   const renderMobileHero = () => {
     const currentProject = projects[mobileIndex];
     return (
@@ -173,7 +169,6 @@ export default function Hero({ cmsData }: { cmsData: any }) {
         transition={{ duration: 0.6 }}
         className="w-full h-full flex flex-col"
       >
-        {/* Carousel area */}
         <div className="relative flex-1 overflow-hidden rounded-sm">
           <AnimatePresence initial={false} custom={direction} mode="popLayout">
             <motion.div
@@ -190,7 +185,6 @@ export default function Hero({ cmsData }: { cmsData: any }) {
               onDragEnd={handleDragEnd}
               className="absolute inset-0 cursor-grab active:cursor-grabbing"
             >
-              {/* Image */}
               <Image
                 src={currentProject.image}
                 alt={currentProject.category}
@@ -199,10 +193,8 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                 priority
               />
 
-              {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-              {/* Content overlay */}
               <div className="absolute inset-0 flex flex-col items-start justify-end p-6 pb-8 z-10">
                 <motion.div
                   key={`content-${mobileIndex}`}
@@ -215,9 +207,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                   </h2>
                   <div className="w-10 h-px bg-[var(--havia-gold)] mb-4" />
                   <button
-                    onClick={() =>
-                      handleExploreClick(currentProject.category)
-                    }
+                    onClick={() => handleExploreClick(currentProject.category)}
                     className="flex items-center gap-2 group"
                   >
                     <span className="text-[11px] uppercase tracking-[0.15em] text-white/70 group-active:text-white transition-colors">
@@ -231,18 +221,10 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                   </button>
                 </motion.div>
               </div>
-
-              {/* HAVIA watermark */}
-              <div className="absolute bottom-4 left-6 z-10">
-                <span className="text-[10px] tracking-[0.3em] text-white/20 uppercase font-light">
-                  HAVIA
-                </span>
-              </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Dot indicators + counter */}
         <div className="flex items-center justify-center gap-3 pt-5 pb-2">
           <span className="text-[10px] tracking-[0.15em] text-[var(--havia-charcoal)]/40 font-mono">
             {String(mobileIndex + 1).padStart(2, "0")}
@@ -276,7 +258,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     );
   };
 
-  // ── Desktop Accordion Layout ──
+  // Desktop Layout
   const renderDesktopHero = () => (
     <motion.div
       variants={containerVariants}
@@ -347,13 +329,13 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                   >
                     <div className="flex items-center gap-3 flex-wrap justify-center">
                       <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
-                        Go to
+                        View
                       </span>
                       <span className="text-sm uppercase tracking-[0.1em] text-white font-semibold group-hover:text-[var(--havia-gold)] transition-colors">
                         {project.category}
                       </span>
                       <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
-                        Project
+                        Projects
                       </span>
                       <ArrowUpRight
                         size={12}

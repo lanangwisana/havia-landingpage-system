@@ -41,7 +41,7 @@ export default function Contact({ cmsData }: { cmsData: any }) {
       className="bg-[var(--havia-charcoal)] text-white font-sans py-8 md:py-12"
     >
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid gap-8 md:gap-12 lg:grid-cols-[1.2fr_1.6fr_0.6fr_1.2fr]">
+        <div className="grid gap-6 md:gap-12 lg:grid-cols-[1.2fr_1.6fr_0.6fr_1.2fr]">
           <div>
             <div className="mb-6">
               <Image
@@ -106,7 +106,7 @@ export default function Contact({ cmsData }: { cmsData: any }) {
           <div>
             <div className="hidden md:block">
               <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
-                Alamat
+                Location
               </h4>
 
               <a
@@ -122,7 +122,7 @@ export default function Contact({ cmsData }: { cmsData: any }) {
 
             <div className="hidden md:block mt-8 md:mt-10">
               <h4 className="text-sm uppercase tracking-[0.2em] mb-4 md:mb-6 text-white/80">
-                Kontak
+                Contact
               </h4>
 
               <a
