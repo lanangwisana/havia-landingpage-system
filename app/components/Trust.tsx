@@ -35,69 +35,45 @@ export default function Trust({ cmsData }: { cmsData: any }) {
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  const testimonials: Testimonial[] = [
-    {
-      id: 1,
-      image: "/logo-client-1.png",
-      quote:
-        "Havia Studio delivered beyond expectation. The design feels timeless and deeply thoughtful.",
-      name: "Edelweiss Hospital",
-      role: "Bandung",
-      type: "corporate",
-    },
-    {
-      id: 2,
-      image: "/logo-client-4.png",
-      quote:
-        "Professional, detail-oriented, and visionary in every aspect of the project execution.",
-      name: "Cendekia Muda Islamic School",
-      role: "Bandung",
-      type: "corporate",
-    },
-    {
-      id: 3,
-      image: "/logo-client-person.png",
-      quote: "Rumah impian kami jadi kenyataan. Terima kasih Havia Studio!",
-      name: "Bapak & Ibu Wijaya",
-      role: "Client Residential",
-      type: "personal",
-    },
-    {
-      id: 4,
-      image: "/logo-client-person.png",
-      quote: "Detail dan pelayanannya luar biasa. Sangat recommended!",
-      name: "Sarah",
-      role: "Client Residential",
-      type: "personal",
-    },
-    {
-      id: 5,
-      image: "/logo-client-person.png",
-      quote: "Komunikasi lancar, hasil sesuai ekspektasi. Makasih tim Havia!",
-      name: "Fajar Prasetyo",
-      role: "Client Residential",
-      type: "personal",
-    },
+  // CMS data with static fallbacks
+  const staticTestimonials: Testimonial[] = [
+    { id: 1, image: "/logo-client-1.png", quote: "Havia Studio delivered beyond expectation. The design feels timeless and deeply thoughtful.", name: "Edelweiss Hospital", role: "Bandung", type: "corporate" },
+    { id: 2, image: "/logo-client-4.png", quote: "Professional, detail-oriented, and visionary in every aspect of the project execution.", name: "Cendekia Muda Islamic School", role: "Bandung", type: "corporate" },
+    { id: 3, image: "/logo-client-person.png", quote: "Rumah impian kami jadi kenyataan. Terima kasih Havia Studio!", name: "Bapak & Ibu Wijaya", role: "Client Residential", type: "personal" },
+    { id: 4, image: "/logo-client-person.png", quote: "Detail dan pelayanannya luar biasa. Sangat recommended!", name: "Sarah", role: "Client Residential", type: "personal" },
+    { id: 5, image: "/logo-client-person.png", quote: "Komunikasi lancar, hasil sesuai ekspektasi. Makasih tim Havia!", name: "Fajar Prasetyo", role: "Client Residential", type: "personal" },
   ];
+
+  const staticClients = ["/logo-client-1.png", "/logo-client-2.png", "/logo-client-3.png", "/logo-client-4.png", "/logo-client-5.png", "/logo-client-6.png", "/logo-client-7.png", "/logo-client-8.png", "/logo-client-9.png", "/logo-client-10.png", "/logo-client-11.png", "/logo-client-12.png"];
+
+  // Use CMS testimonials if available, otherwise static
+  const cmsTestimonials: Testimonial[] = (cmsData?.testimonials && cmsData.testimonials.length > 0)
+    ? cmsData.testimonials.map((t: any) => ({
+        id: t.id,
+        image: t.image || "/logo-client-person.png",
+        quote: t.quote || "",
+        name: t.name || "",
+        role: t.role || "",
+        type: (t.type === "personal" ? "personal" : "corporate") as "corporate" | "personal",
+      }))
+    : staticTestimonials;
+
+  const testimonials = cmsTestimonials;
 
   const filteredTestimonials = testimonials.filter(
     (t) => t.type === filterType,
   );
 
-  const clients = [
-    "/logo-client-1.png",
-    "/logo-client-2.png",
-    "/logo-client-3.png",
-    "/logo-client-4.png",
-    "/logo-client-5.png",
-    "/logo-client-6.png",
-    "/logo-client-7.png",
-    "/logo-client-8.png",
-    "/logo-client-9.png",
-    "/logo-client-10.png",
-    "/logo-client-11.png",
-    "/logo-client-12.png",
-  ];
+  // Use CMS client logos if available
+  const clients: string[] = (cmsData?.client_logos && cmsData.client_logos.length > 0)
+    ? cmsData.client_logos.map((c: any) => c.image)
+    : staticClients;
+
+  // CMS headings
+  const testimonialHeading = cmsData?.landingpage_trust_heading || "Testimonial";
+  const btnCorporateLabel = cmsData?.landingpage_trust_btn_corporate || "Corporate";
+  const btnPersonalLabel = cmsData?.landingpage_trust_btn_personal || "Personal";
+  const clientHeading = cmsData?.landingpage_trust_client_heading || "Our Clients";
 
   const nextSlide = () => {
     if (filteredTestimonials.length === 0) return;
@@ -195,7 +171,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           className="text-center mb-4"
         >
           <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">
-            Testimonial
+            {testimonialHeading}
           </h2>
           <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mx-auto mb-8" />
         </motion.div>
@@ -213,7 +189,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                 }
               `}
             >
-              Corporate (
+              {btnCorporateLabel} (
               {testimonials.filter((t) => t.type === "corporate").length})
             </button>
             <button
@@ -227,7 +203,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                 }
               `}
             >
-              Personal (
+              {btnPersonalLabel} (
               {testimonials.filter((t) => t.type === "personal").length})
             </button>
           </div>
@@ -456,7 +432,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
             className="text-center mb-4"
           >
             <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">
-              Our Clients
+              {clientHeading}
             </h2>
             <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mx-auto mb-8" />
           </motion.div>

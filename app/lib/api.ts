@@ -1,32 +1,54 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://127.0.0.1/havia-project/havia-brain-system/index.php/api/haviacms";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1/havia-project/havia-brain-system/index.php";
 
-export async function getSettings() {
-  const url = `${API_BASE_URL}/landingpage/settings`;
-  console.log(`[HaviaCMS] Requesting content from: ${url}`);
-
+export async function getLandingPageSettings() {
   try {
-    // console.log(`[HaviaCMS] Fetching from: ${url}`);
-    const response = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": "http://localhost:3000/",
+    const res = await fetch(
+      `${API_BASE_URL}/api/haviacms/landingpage/settings`,
+      {
+        next: { revalidate: 60 },
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
-    if (!response.ok) {
-      console.warn(`[HaviaCMS] API returned status: ${response.status}`);
-      return null;
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    if (json.success && json.data) {
+      return json.data;
     }
-
-    const json = await response.json();
-    return json.success ? json.data : null;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[HaviaCMS] API unreachable (${message}) — using default content`);
-    console.error("[HaviaCMS] Detailed error:", error);
+    return json;
+  } catch (error) {
+    console.error("Failed to fetch landing page settings:", error);
     return null;
+  }
+}
+
+// Backward-compatible alias
+export const getSettings = getLandingPageSettings;
+
+export async function submitPortfolioRequest(data: {
+  name: string;
+  contact: string;
+  interest: string;
+}) {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/haviacms/landingpage/request`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    const json = await res.json();
+    return json;
+  } catch (error) {
+    console.error("Failed to submit portfolio request:", error);
+    return { success: false, message: "Network error. Please try again." };
   }
 }
