@@ -2,11 +2,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1/havia-
 
 export async function getLandingPageSettings() {
   try {
+    // Add timestamp to bypass any intermediate proxy caches
+    const timestamp = new Date().getTime();
     const res = await fetch(
-      `${API_BASE_URL}/api/haviacms/landingpage/settings`,
+      `${API_BASE_URL}/api/haviacms/landingpage/settings?t=${timestamp}`,
       {
-        next: { revalidate: 60 },
+        next: { revalidate: 30 },
         headers: {
+          "Cache-Control": "no-cache",
           "Content-Type": "application/json",
         },
       },
