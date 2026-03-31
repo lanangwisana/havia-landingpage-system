@@ -1,3 +1,5 @@
+import { unstable_noStore as noStore } from "next/cache";
+
 // Clean up the API_BASE_URL to prevent duplicated path segments
 const getBaseUrl = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1/havia-project/havia-brain-system/index.php";
@@ -11,6 +13,7 @@ const getBaseUrl = () => {
 const API_BASE_URL = getBaseUrl();
 
 export async function getLandingPageSettings() {
+  noStore();
   try {
     // Add timestamp to bypass any intermediate proxy caches
     const timestamp = new Date().getTime();
