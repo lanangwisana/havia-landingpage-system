@@ -18,6 +18,7 @@ type TeamMember = {
 type GalleryImage = {
   id: number;
   src: string;
+  description?: string;
 };
 
 // Static fallback data
@@ -62,6 +63,7 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
     ? cmsData.gallery_images.map((g: any) => ({
         id: g.id,
         src: g.src || "/havia-gallery-1.jpg",
+        description: g.description,
       }))
     : staticGalleryImages;
 
@@ -309,9 +311,15 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
                     className="object-cover transition-all duration-700 group-hover:scale-105"
                   />
                 </div>
-                <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
-                  Image {index + 1}
-                </p>
+                {img.description ? (
+                  <p className="text-sm font-light text-[var(--havia-charcoal)]/80 mt-3 md:mt-4 leading-relaxed line-clamp-2">
+                    {img.description}
+                  </p>
+                ) : (
+                  <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
+                    Image {index + 1}
+                  </p>
+                )}
               </motion.div>
             ))}
           </div>
@@ -364,8 +372,12 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
               />
             </div>
             <div className="mt-4 text-center px-4 py-3 bg-black/60 backdrop-blur-sm rounded-lg">
-              <p className="text-white text-sm">Image {currentIndex + 1}</p>
-              <p className="text-white/40 text-xs mt-1">
+              {selectedImage.description ? (
+                <p className="text-white text-sm whitespace-pre-wrap leading-relaxed max-w-2xl mx-auto">{selectedImage.description}</p>
+              ) : (
+                <p className="text-white text-sm">Image {currentIndex + 1}</p>
+              )}
+              <p className="text-white/40 text-xs mt-2">
                 {currentIndex + 1} / {galleryImages.length}
               </p>
             </div>

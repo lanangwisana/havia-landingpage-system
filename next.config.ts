@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
         hostname: "localhost",
       },
       {
+        protocol: "http",
+        hostname: "brain.havia.id",
+      },
+      {
         protocol: "https",
         hostname: "**",
       },
