@@ -8,142 +8,78 @@ import { motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
 import Header from "../components/Header";
 
-// Data tim
-const teamMembers = [
-  {
-    id: 1,
-    name: "Arief Budiman",
-    role: "Principal Architect",
-    image: "/havia-team-2.jpg",
-    description: "Principle of Havia Studio team.",
-  },
-  {
-    id: 2,
-    name: "Dina Rahmawati",
-    role: "Senior Architect",
-    image: "/havia-team-1.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 3,
-    name: "Rizki Ramadhan",
-    role: "Project Manager",
-    image: "/havia-team-2.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 4,
-    name: "Maya Sari",
-    role: "Interior Designer",
-    image: "/havia-team-1.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 5,
-    name: "Budi Santoso",
-    role: "Structural Engineer",
-    image: "/havia-team-2.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 6,
-    name: "Siska Wijaya",
-    role: "Architectural Designer",
-    image: "/havia-team-1.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 7,
-    name: "Hendra Kusuma",
-    role: "3D Visualizer",
-    image: "/havia-team-2.jpg",
-    description: "Part of Havia Studio team.",
-  },
-  {
-    id: 8,
-    name: "Rina Fitriani",
-    role: "Landscape Architect",
-    image: "/havia-team-1.jpg",
-    description: "Part of Havia Studio team.",
-  },
+type TeamMember = {
+  id: number;
+  name: string;
+  role: string;
+  image: string;
+};
+
+type GalleryImage = {
+  id: number;
+  src: string;
+  description?: string;
+};
+
+// Static fallback data
+const staticTeamMembers: TeamMember[] = [
+  { id: 1, name: "Arief Budiman", role: "Principal Architect", image: "/havia-team-2.jpg" },
+  { id: 2, name: "Dina Rahmawati", role: "Senior Architect", image: "/havia-team-1.jpg" },
+  { id: 3, name: "Rizki Ramadhan", role: "Project Manager", image: "/havia-team-2.jpg" },
+  { id: 4, name: "Maya Sari", role: "Interior Designer", image: "/havia-team-1.jpg" },
+  { id: 5, name: "Budi Santoso", role: "Structural Engineer", image: "/havia-team-2.jpg" },
+  { id: 6, name: "Siska Wijaya", role: "Architectural Designer", image: "/havia-team-1.jpg" },
+  { id: 7, name: "Hendra Kusuma", role: "3D Visualizer", image: "/havia-team-2.jpg" },
+  { id: 8, name: "Rina Fitriani", role: "Landscape Architect", image: "/havia-team-1.jpg" },
 ];
 
-// Data galeri
-const galleryImages = [
-  {
-    id: 1,
-    src: "/havia-gallery-2.jpg",
-    caption:
-      "Studio Discussion - Brainstorming design konsep untuk proyek residensial",
-  },
-  {
-    id: 2,
-    src: "/havia-gallery-1.jpg",
-    caption: "Site Visit - Survey lokasi di Bandung",
-  },
-  {
-    id: 3,
-    src: "/havia-gallery-3.jpg",
-    caption: "Team Lunch - Celebrating project handover",
-  },
-  {
-    id: 4,
-    src: "/havia-gallery-3.jpg",
-    caption: "Workshop - Material exploration",
-  },
-  {
-    id: 5,
-    src: "/havia-gallery-1.jpg",
-    caption: "Client Meeting - Presenting design concept",
-  },
-  {
-    id: 6,
-    src: "/havia-gallery-2.jpg",
-    caption: "Design Review - Weekly studio critique",
-  },
-  {
-    id: 7,
-    src: "/havia-gallery-2.jpg",
-    caption: "Studio Night - Working on competition entry",
-  },
-  {
-    id: 8,
-    src: "/havia-gallery-2.jpg",
-    caption: "Material Library - New arrivals",
-  },
-  {
-    id: 9,
-    src: "/havia-gallery-3.jpg",
-    caption: "Coffee Break - Informal chat",
-  },
-  {
-    id: 10,
-    src: "/havia-gallery-1.jpg",
-    caption: "Presentation Day - Final review",
-  },
-  {
-    id: 11,
-    src: "/havia-gallery-2.jpg",
-    caption: "Studio Pet - Office dog visit",
-  },
-  {
-    id: 12,
-    src: "/havia-gallery-3.jpg",
-    caption: "Award Ceremony - Best emerging studio",
-  },
+const staticGalleryImages: GalleryImage[] = [
+  { id: 1, src: "/havia-gallery-2.jpg" },
+  { id: 2, src: "/havia-gallery-1.jpg" },
+  { id: 3, src: "/havia-gallery-3.jpg" },
+  { id: 4, src: "/havia-gallery-3.jpg" },
+  { id: 5, src: "/havia-gallery-1.jpg" },
+  { id: 6, src: "/havia-gallery-2.jpg" },
+  { id: 7, src: "/havia-gallery-2.jpg" },
+  { id: 8, src: "/havia-gallery-2.jpg" },
+  { id: 9, src: "/havia-gallery-3.jpg" },
+  { id: 10, src: "/havia-gallery-1.jpg" },
+  { id: 11, src: "/havia-gallery-2.jpg" },
+  { id: 12, src: "/havia-gallery-3.jpg" },
 ];
 
-export default function AboutDetail() {
+export default function AboutDetail({ cmsData }: { cmsData?: any }) {
+  // Use CMS data if available, otherwise static
+  const teamMembers: TeamMember[] = (cmsData?.team_members && cmsData.team_members.length > 0)
+    ? cmsData.team_members.map((m: any) => ({
+        id: m.id,
+        name: m.name || "",
+        role: m.role || "",
+        image: m.image || "/havia-team-1.jpg",
+      }))
+    : staticTeamMembers;
+
+  const galleryImages: GalleryImage[] = (cmsData?.gallery_images && cmsData.gallery_images.length > 0)
+    ? cmsData.gallery_images.map((g: any) => ({
+        id: g.id,
+        src: g.src || "/havia-gallery-1.jpg",
+        description: g.description,
+      }))
+    : staticGalleryImages;
+
+  const aboutImage = cmsData?.landingpage_about_image || "/havia-photo-1.png";
+  const aboutText = cmsData?.landingpage_about_p1 || "Havia Studio adalah studio arsitektur yang berfokus pada kolaborasi, eksplorasi material, dan hubungan antara ruang dan lingkungan. Setiap proyek adalah dialog antara fungsi dan emosi.";
+
   const [selectedMember, setSelectedMember] = useState<
-    (typeof teamMembers)[0] | null
+    TeamMember | null
   >(null);
   const [memberIndex, setMemberIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<
-    (typeof galleryImages)[0] | null
+    GalleryImage | null
   >(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const openLightbox = (image: (typeof galleryImages)[0], index: number) => {
+  const openLightbox = (image: GalleryImage, index: number) => {
     setSelectedImage(image);
     setCurrentIndex(index);
   };
@@ -163,7 +99,7 @@ export default function AboutDetail() {
     setCurrentIndex(newIndex);
   };
 
-  const openMember = (member: (typeof teamMembers)[0], index: number) => {
+  const openMember = (member: TeamMember, index: number) => {
     setSelectedMember(member);
     setMemberIndex(index);
   };
@@ -217,14 +153,12 @@ export default function AboutDetail() {
               <div className="w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-3" />
             </motion.div>
             <p className="text-sm text-[var(--havia-charcoal)]/60 leading-relaxed text-justify">
-              Havia Studio adalah studio arsitektur yang berfokus pada
-              kolaborasi, eksplorasi material, dan hubungan antara ruang dan
-              lingkungan. Setiap proyek adalah dialog antara fungsi dan emosi.
+              {aboutText}
             </p>
           </div>
           <div className="relative aspect-[5/2] overflow-hidden">
             <Image
-              src="/havia-photo-1.png"
+              src={aboutImage}
               alt="Havia Studio"
               fill
               className="object-cover transition duration-700"
@@ -331,7 +265,7 @@ export default function AboutDetail() {
                 {selectedMember.role}
               </p>
               <p className="text-sm text-white/70">
-                {selectedMember.description}
+                {selectedMember.role}
               </p>
               <p className="text-xs text-white/40 mt-6">
                 {memberIndex + 1} / {teamMembers.length}
@@ -372,14 +306,20 @@ export default function AboutDetail() {
                 <div className="relative overflow-hidden bg-[var(--havia-charcoal)]/5 aspect-[4/3]">
                   <Image
                     src={img.src}
-                    alt={img.caption}
+                    alt={`Gallery image ${index + 1}`}
                     fill
                     className="object-cover transition-all duration-700 group-hover:scale-105"
                   />
                 </div>
-                <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
-                  {img.caption}
-                </p>
+                {img.description ? (
+                  <p className="text-sm font-light text-[var(--havia-charcoal)]/80 mt-3 md:mt-4 leading-relaxed line-clamp-2">
+                    {img.description}
+                  </p>
+                ) : (
+                  <p className="text-xs text-[var(--havia-charcoal)]/60 mt-2 md:hidden">
+                    Image {index + 1}
+                  </p>
+                )}
               </motion.div>
             ))}
           </div>
@@ -424,7 +364,7 @@ export default function AboutDetail() {
             <div className="relative flex justify-center items-center">
               <Image
                 src={selectedImage.src}
-                alt={selectedImage.caption}
+                alt={`Gallery image ${currentIndex + 1}`}
                 width={1200}
                 height={800}
                 className="object-contain max-h-[85vh] w-auto h-auto"
@@ -432,8 +372,12 @@ export default function AboutDetail() {
               />
             </div>
             <div className="mt-4 text-center px-4 py-3 bg-black/60 backdrop-blur-sm rounded-lg">
-              <p className="text-white text-sm">{selectedImage.caption}</p>
-              <p className="text-white/40 text-xs mt-1">
+              {selectedImage.description ? (
+                <p className="text-white text-sm whitespace-pre-wrap leading-relaxed max-w-2xl mx-auto">{selectedImage.description}</p>
+              ) : (
+                <p className="text-white text-sm">Image {currentIndex + 1}</p>
+              )}
+              <p className="text-white/40 text-xs mt-2">
                 {currentIndex + 1} / {galleryImages.length}
               </p>
             </div>

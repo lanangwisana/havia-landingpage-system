@@ -1,14 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Send, ArrowRight } from "lucide-react";
+import { X, Send, ArrowRight, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import { submitPortfolioRequest } from "../lib/api";
 
 export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,16 +29,40 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    setIsModalOpen(false);
+    setIsSubmitting(true);
+    setSubmitResult(null);
+
+    try {
+      const result = await submitPortfolioRequest(formData);
+      setSubmitResult(result);
+      if (result.success) {
+        setFormData({
+          name: "",
+          contact: "",
+          interest: "Just exploring your portfolio",
+        });
+      }
+    } catch {
+      setSubmitResult({
+        success: false,
+        message: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSubmitResult(null);
   };
 
   return (
@@ -68,7 +98,7 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                   Interested in our work?
                 </h3>
                 <p className="text-xs md:text-sm text-white/60">
-                  Get our portfolio and let's discuss your vision.
+                  Get our portfolio and let&apos;s discuss your vision.
                 </p>
               </div>
 
@@ -99,7 +129,7 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                   transition={{ duration: 0.2 }}
                   className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
                   onClick={(e) => {
-                    if (e.target === e.currentTarget) setIsModalOpen(false);
+                    if (e.target === e.currentTarget) closeModal();
                   }}
                 >
                   <motion.div
@@ -112,87 +142,122 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
-                      onClick={() => setIsModalOpen(false)}
+                      onClick={closeModal}
                       className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#2c2a29] transition-colors"
                     >
                       <X size={18} />
                     </button>
 
                     <div className="p-6 md:p-8">
-                      <div className="mb-6">
-                        <h3 className="text-xl md:text-2xl font-light tracking-tight mb-2 text-[#2c2a29]">
-                          {downloadText}
-                        </h3>
-                        <p className="text-xs md:text-sm text-gray-400">
-                          Interested in our work? Let's start a conversation.
-                        </p>
-                      </div>
-
-                      <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
-                          <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
-                            Name
-                          </label>
-                          <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Your name"
-                            className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
-                            required
+                      {submitResult?.success ? (
+                        <div className="text-center py-8">
+                          <CheckCircle
+                            size={48}
+                            className="text-green-500 mx-auto mb-4"
                           />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
-                            Email or WhatsApp
-                          </label>
-                          <input
-                            type="text"
-                            name="contact"
-                            value={formData.contact}
-                            onChange={handleChange}
-                            placeholder="How can we reach you?"
-                            className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
-                            I am...
-                          </label>
-                          <select
-                            name="interest"
-                            value={formData.interest}
-                            onChange={handleChange}
-                            className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
-                          >
-                            <option>Just exploring your portfolio</option>
-                            <option>Planning a project</option>
-                            <option>Looking for collaboration</option>
-                            <option>Other</option>
-                          </select>
-                        </div>
-
-                        <div className="pt-4">
-                          <p className="text-xs mb-6 text-gray-400">
-                            We'll review your request and get back to you within
-                            1-2 business days.
+                          <h3 className="text-xl font-light mb-2 text-[#2c2a29]">
+                            Request Submitted!
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {submitResult.message}
                           </p>
                           <button
-                            type="submit"
-                            className="w-full py-3 text-sm tracking-wide transition-colors flex items-center justify-center gap-2 group bg-[#2c2a29] hover:bg-[#c69c3d] text-white"
+                            onClick={closeModal}
+                            className="mt-6 px-6 py-2 bg-[#2c2a29] text-white text-sm rounded hover:bg-[#c69c3d] transition"
                           >
-                            <span>Send Request</span>
-                            <Send
-                              size={14}
-                              className="group-hover:translate-x-1 transition-transform"
-                            />
+                            Close
                           </button>
                         </div>
-                      </form>
+                      ) : (
+                        <>
+                          <div className="mb-6">
+                            <h3 className="text-xl md:text-2xl font-light tracking-tight mb-2 text-[#2c2a29]">
+                              {downloadText}
+                            </h3>
+                            <p className="text-xs md:text-sm text-gray-400">
+                              Interested in our work? Let&apos;s start a
+                              conversation.
+                            </p>
+                          </div>
+
+                          {submitResult && !submitResult.success && (
+                            <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded">
+                              {submitResult.message}
+                            </div>
+                          )}
+
+                          <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
+                                Name
+                              </label>
+                              <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Your name"
+                                className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
+                                Email or WhatsApp
+                              </label>
+                              <input
+                                type="text"
+                                name="contact"
+                                value={formData.contact}
+                                onChange={handleChange}
+                                placeholder="How can we reach you?"
+                                className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
+                                I am...
+                              </label>
+                              <select
+                                name="interest"
+                                value={formData.interest}
+                                onChange={handleChange}
+                                className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
+                              >
+                                <option>Just exploring your portfolio</option>
+                                <option>Planning a project</option>
+                                <option>Looking for collaboration</option>
+                                <option>Other</option>
+                              </select>
+                            </div>
+
+                            <div className="pt-4">
+                              <p className="text-xs mb-6 text-gray-400">
+                                We&apos;ll review your request and get back to
+                                you within 1-2 business days.
+                              </p>
+                              <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full py-3 text-sm tracking-wide transition-colors flex items-center justify-center gap-2 group bg-[#2c2a29] hover:bg-[#c69c3d] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <span>
+                                  {isSubmitting
+                                    ? "Sending..."
+                                    : "Send Request"}
+                                </span>
+                                <Send
+                                  size={14}
+                                  className="group-hover:translate-x-1 transition-transform"
+                                />
+                              </button>
+                            </div>
+                          </form>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 </motion.div>

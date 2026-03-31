@@ -186,21 +186,32 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
+  // Use CMS projects if available, otherwise static  
   const projects: Project[] =
-    cmsData?.landingpage_portfolio_json &&
-    Array.isArray(cmsData.landingpage_portfolio_json) &&
-    cmsData.landingpage_portfolio_json.length > 0
-      ? cmsData.landingpage_portfolio_json.slice(0, 9)
+    cmsData?.projects &&
+    Array.isArray(cmsData.projects) &&
+    cmsData.projects.length > 0
+      ? cmsData.projects.map((p: any) => ({
+          id: p.id,
+          title: p.title || "",
+          category: p.category || "",
+          image: p.image || "",
+          location: p.location || "",
+          year: p.year || "",
+          client: p.client || "",
+          scope: Array.isArray(p.scope) ? p.scope : [],
+          story: p.story || "",
+          images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image],
+        }))
       : staticProjects;
 
-  const categories = [
-    "All",
-    "Residential",
-    "Commercial",
-    "Educational",
-    "Interior",
-    "Masterplan",
-  ];
+  // Use CMS categories if available, otherwise extract from static projects
+  const categories: string[] = (() => {
+    if (cmsData?.project_categories && cmsData.project_categories.length > 0) {
+      return ["All", ...cmsData.project_categories.map((c: any) => c.name)];
+    }
+    return ["All", "Residential", "Commercial", "Educational", "Interior", "Masterplan"];
+  })();
 
   useEffect(() => {
     const storedCategory = sessionStorage.getItem("selectedCategory");

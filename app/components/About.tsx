@@ -281,7 +281,7 @@ export default function About({ cmsData }: { cmsData: any }) {
               onMouseLeave={() => !isMobile && setIsHoveringImage(false)}
             >
               <Image
-                src="/havia-photo-1.png"
+                src={cmsData?.landingpage_about_image || "/havia-photo-1.png"}
                 alt="Havia Studio Team"
                 fill
                 className="object-cover grayscale hover:grayscale-0 transition-all duration-700"

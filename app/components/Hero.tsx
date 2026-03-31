@@ -17,9 +17,11 @@ type Project = {
   id: number;
   image: string;
   category: string;
+  heading_h1?: string;
+  heading_h2?: string;
 };
 
-const projects: Project[] = [
+const staticProjects: Project[] = [
   { id: 1, image: "/havia-project-2.jpg", category: "Residential" },
   { id: 2, image: "/havia-project-4.jpg", category: "Commercial" },
   { id: 3, image: "/havia-project-1.jpg", category: "Educational" },
@@ -49,7 +51,18 @@ export default function Hero({ cmsData }: { cmsData: any }) {
   const [showCursor, setShowCursor] = useState(false);
   const [hoverExplore, setHoverExplore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false); // untuk trigger animasi masuk
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  // Use CMS hero slides if available
+  const projects: Project[] = (cmsData?.hero_slides && cmsData.hero_slides.length > 0)
+    ? cmsData.hero_slides.map((s: any, i: number) => ({
+        id: s.id || i + 1,
+        image: s.image || staticProjects[i % staticProjects.length]?.image || "/havia-project-1.jpg",
+        category: staticProjects[i % staticProjects.length]?.category || "Architecture",
+        heading_h1: s.heading_h1 || "",
+        heading_h2: s.heading_h2 || "",
+      }))
+    : staticProjects;
 
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
