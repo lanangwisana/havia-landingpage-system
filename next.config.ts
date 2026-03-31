@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
         hostname: "brain.havia.id",
       },
       {
-        protocol: "https",
+        protocol: "http",
         hostname: "*havia.id*",
       },
     ],
