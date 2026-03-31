@@ -10,6 +10,8 @@ import WhatsappCTA from "./components/WhatsappCTA";
 import SplashScreen from "./components/SplashScreen";
 import { getSettings } from "./lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const cmsData = await getSettings();
 
