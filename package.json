@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@types/nodemailer": "^7.0.11",
     "framer-motion": "^12.38.0",
     "gsap": "^3.14.2",
     "lucide-react": "^0.576.0",
     "next": "16.1.6",
+    "nodemailer": "^8.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
