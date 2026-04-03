@@ -4,9 +4,15 @@ import { useEffect, useState, useRef } from "react";
 import { MessageCircle, ArrowUpFromLine } from "lucide-react";
 
 export default function WhatsappCTA({ cmsData }: { cmsData: any }) {
-  const phone = cmsData?.landingpage_whatsapp_phone || "628112430121";
+  let phone = cmsData?.landingpage_whatsapp_phone || "628112430121";
   const label = cmsData?.landingpage_whatsapp_label || "Chat WhatsApp";
   const message = cmsData?.landingpage_whatsapp_message || "";
+
+  // Normalize phone (remove non-digits and replace leading 0 with 62)
+  phone = phone.replace(/[^0-9]/g, "");
+  if (phone.startsWith("0")) {
+    phone = "62" + phone.substring(1);
+  }
 
   const waUrl = message
     ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`

@@ -237,7 +237,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                   transition={{ delay: 0.2, duration: 0.5 }}
                 >
                   <h2 className="text-2xl font-light text-white uppercase tracking-[3px] mb-2 font-sans">
-                    {currentProject.category}
+                    {currentProject.heading_h1 || currentProject.category}
                   </h2>
                   <div className="w-10 h-px bg-[var(--havia-gold)] mb-4" />
                   <button
@@ -245,7 +245,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                     className="flex items-center gap-2 group"
                   >
                     <span className="text-[11px] uppercase tracking-[0.15em] text-white/70 group-active:text-white transition-colors">
-                      View Projects
+                      {currentProject.heading_h2 || "View Projects"}
                     </span>
                     <ArrowUpRight
                       size={14}
@@ -347,7 +347,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                     transition={{ delay: 0.4, duration: 0.6 }}
                     className="text-5xl font-light text-white uppercase tracking-[2px] mb-4 text-center break-words font-sans"
                   >
-                    {project.category}
+                    {project.heading_h1 || project.category}
                   </motion.h2>
                   <motion.div
                     initial={{ width: 0 }}
@@ -366,7 +366,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                         View
                       </span>
                       <span className="text-sm uppercase tracking-[0.1em] text-white font-semibold group-hover:text-[var(--havia-gold)] transition-colors">
-                        {project.category}
+                        {project.heading_h1 || project.category}
                       </span>
                       <span className="text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
                         Projects
