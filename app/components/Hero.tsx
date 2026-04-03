@@ -58,7 +58,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     ? cmsData.hero_slides.map((s: any, i: number) => ({
         id: s.id || i + 1,
         image: s.image || staticProjects[i % staticProjects.length]?.image || "/havia-project-1.jpg",
-        category: staticProjects[i % staticProjects.length]?.category || "Architecture",
+        category: s.category || (s.heading_h1 ? s.heading_h1.charAt(0).toUpperCase() + s.heading_h1.slice(1).toLowerCase() : staticProjects[i % staticProjects.length]?.category) || "Architecture",
         heading_h1: s.heading_h1 || "",
         heading_h2: s.heading_h2 || "",
       }))
@@ -217,7 +217,8 @@ export default function Hero({ cmsData }: { cmsData: any }) {
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.12}
               onDragEnd={handleDragEnd}
-              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              onTap={() => handleExploreClick(currentProject.category)}
+              className="absolute inset-0 cursor-pointer active:cursor-grabbing"
             >
               <Image
                 src={currentProject.image}
@@ -308,9 +309,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
             variants={itemVariants}
             onMouseEnter={() => setActiveIndex(index)}
             // Seluruh card dapat diklik hanya jika aktif
-            onClick={
-              isActive ? () => handleExploreClick(project.category) : undefined
-            }
+            onClick={() => handleExploreClick(project.category)}
             className={`
             relative h-full overflow-hidden
             transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
