@@ -13,6 +13,7 @@ type TeamMember = {
   name: string;
   role: string;
   image: string;
+  description?: string;
 };
 
 type GalleryImage = {
@@ -55,6 +56,7 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
         id: m.id,
         name: m.name || "",
         role: m.role || "",
+        description: m.description || "",
         image: m.image || "/havia-team-1.jpg",
       }))
     : staticTeamMembers;
@@ -208,6 +210,11 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
                   <p className="text-[10px] text-[var(--havia-charcoal)]/40 uppercase tracking-wider mt-0.5">
                     {member.role}
                   </p>
+                  {member.description && (
+                    <p className="text-[9px] text-[var(--havia-charcoal)]/30 line-clamp-1 mt-1">
+                      {member.description}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -264,9 +271,11 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
               <p className="text-xs uppercase tracking-wider text-white/50 mb-4">
                 {selectedMember.role}
               </p>
-              <p className="text-sm text-white/70">
-                {selectedMember.role}
-              </p>
+              {selectedMember.description && (
+                <p className="text-sm text-white/70 leading-relaxed mb-6">
+                  {selectedMember.description}
+                </p>
+              )}
               <p className="text-xs text-white/40 mt-6">
                 {memberIndex + 1} / {teamMembers.length}
               </p>
