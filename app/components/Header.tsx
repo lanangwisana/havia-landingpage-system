@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header({ cmsData }: { cmsData?: any }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -24,21 +27,20 @@ export default function Header({ cmsData }: { cmsData?: any }) {
 
   const handleMenuClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    const targetId = href.substring(1);
-    const targetElement = document.getElementById(targetId);
-    
-    if (targetElement) {
-      // Tutup menu
-      setMobileOpen(false);
-      // Scroll ke target dengan smooth behavior (menggunakan CSS scroll-margin-top)
-      setTimeout(() => {
+    const targetId = href.substring(1); 
+    const isHome = pathname === "/" || pathname === "";
+
+    if (isHome) {
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        setMobileOpen(false);
         targetElement.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      } else {
+        console.warn(`Element with id "${targetId}" not found.`);
+      }
     } else {
-      console.warn(`Element with id "${targetId}" not found.`);
-      // Fallback
-      window.location.href = href;
       setMobileOpen(false);
+      window.location.href = `/${href}`;
     }
   };
 
@@ -50,14 +52,14 @@ export default function Header({ cmsData }: { cmsData?: any }) {
     >
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         {/* LOGO */}
-        <a href="/" className="relative w-20 h-6">
+        <Link href="/" className="relative w-20 h-6">
           <Image
             src="/logo-havia-primary-black.png"
             alt="Havia Studio"
             fill
             className="object-contain"
           />
-        </a>
+        </Link>
 
         {/* DESKTOP NAV */}
         <nav className="hidden md:flex items-center gap-7">
@@ -65,7 +67,8 @@ export default function Header({ cmsData }: { cmsData?: any }) {
             <a
               key={item.label}
               href={item.href}
-              className="relative text-[12px] tracking-[0.2em] text-[#2c2a29]/80 hover:text-[#2c2a29] transition-colors group"
+              onClick={(e) => handleMenuClick(e, item.href)}
+              className="relative text-[12px] tracking-[0.2em] text-[#2c2a29]/80 hover:text-[#2c2a29] transition-colors group cursor-pointer"
             >
               {item.label}
               <span className="absolute -bottom-1 left-0 h-[1px] bg-[#c69c3d] transition-all duration-300 w-0 group-hover:w-full" />
@@ -99,7 +102,7 @@ export default function Header({ cmsData }: { cmsData?: any }) {
                   key={item.label}
                   href={item.href}
                   onClick={(e) => handleMenuClick(e, item.href)}
-                  className="text-sm uppercase tracking-[0.2em] text-[#2c2a29] hover:text-[#c69c3d] transition-colors"
+                  className="text-sm uppercase tracking-[0.2em] text-[#2c2a29] hover:text-[#c69c3d] transition-colors cursor-pointer"
                 >
                   {item.label}
                 </a>
