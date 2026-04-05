@@ -75,3 +75,21 @@ export async function submitPortfolioRequest(data: {
     return { success: false, message: "Network error. Please try again." };
   }
 }
+
+export async function getProjectPagination(page: number = 1, categoryId: string | number = 'all') {
+  noStore();
+  try {
+    const timestamp = new Date().getTime();
+    const fetchUrl = `${API_BASE_URL}/api/haviacms/landingpage/settings?page=${page}&category_id=${categoryId}&t=${timestamp}`;
+    
+    console.log(`[Project Fetch] Requesting: ${fetchUrl}`);
+
+    const res = await fetch(fetchUrl, { cache: "no-store", headers: { "Content-Type": "application/json" } });
+
+    if (!res.ok) return { success: false, message: `Error status: ${res.status}` };
+    return await res.json();
+  } catch (error) {
+    console.error("[Project Fetch] Failure:", error);
+    return { success: false, message: "Critical failure" };
+  }
+}
