@@ -14,7 +14,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Header from "../components/Header";
 import { getProjectPagination } from "../lib/api";
 
 if (typeof window !== "undefined") {
@@ -170,7 +169,10 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
-  const [pagination, setPagination] = useState({ total_pages: 1, total_items: 0 });
+  const [pagination, setPagination] = useState({
+    total_pages: 1,
+    total_items: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -189,13 +191,21 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
   const filterButtonRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const rowTriggersRef = useRef<ScrollTrigger[]>([]);
+  const contentWrapperRef = useRef<HTMLDivElement | null>(null);
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
 
   const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
   // Categories helper
   const categoriesList: { id: string | number; name: string }[] = (() => {
     if (cmsData?.project_categories && cmsData.project_categories.length > 0) {
-      return [{ id: "all", name: "All" }, ...cmsData.project_categories.map((c: any) => ({ id: c.id, name: c.name }))];
+      return [
+        { id: "all", name: "All" },
+        ...cmsData.project_categories.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+        })),
+      ];
     }
     return [
       { id: "all", name: "All" },
@@ -207,7 +217,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     ];
   })();
 
-  const categoriesNames = categoriesList.map(c => c.name);
+  const categoriesNames = categoriesList.map((c) => c.name);
 
   // Fetch logic
   const fetchPage = async (page: number, catId: string | number) => {
@@ -215,21 +225,25 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     try {
       const result = await getProjectPagination(page, catId);
       if (result.success && result.data.projects) {
-        setProjectsState(result.data.projects.map((p: any) => ({
-          id: p.id,
-          title: p.title || "",
-          category: p.category || "",
-          image: p.image || "",
-          location: p.location || "",
-          year: p.year || "",
-          client: p.client || "",
-          scope: Array.isArray(p.scope) ? p.scope : [],
-          story: p.story || "",
-          images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image],
-        })));
+        setProjectsState(
+          result.data.projects.map((p: any) => ({
+            id: p.id,
+            title: p.title || "",
+            category: p.category || "",
+            image: p.image || "",
+            location: p.location || "",
+            year: p.year || "",
+            client: p.client || "",
+            scope: Array.isArray(p.scope) ? p.scope : [],
+            story: p.story || "",
+            images:
+              Array.isArray(p.images) && p.images.length > 0
+                ? p.images
+                : [p.image],
+          })),
+        );
         setPagination(result.data.pagination);
       } else {
-        // Fallback to static projects for initial or empty
         setProjectsState(staticProjects);
       }
     } catch (err) {
@@ -242,12 +256,15 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   // Initial load or category/page change
   useEffect(() => {
-    const catObj = categoriesList.find(c => c.name === activeCategory);
+    const catObj = categoriesList.find((c) => c.name === activeCategory);
     const catId = catObj ? catObj.id : "all";
     fetchPage(currentPage, catId);
-    
+
     if (currentPage > 1 || activeCategory !== "All") {
-        portfolioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      portfolioRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [activeCategory, currentPage]);
 
@@ -330,6 +347,26 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       rowTriggersRef.current.push(trigger);
     });
 
+    if (sidebarRef.current && contentWrapperRef.current) {
+      const sidebar = sidebarRef.current;
+      const wrapper = contentWrapperRef.current;
+
+      const existingPin = rowTriggersRef.current.find(
+        (st) => st.vars?.id === "sidebar-pin",
+      );
+      if (existingPin) existingPin.kill();
+
+      const pinTrigger = ScrollTrigger.create({
+        id: "sidebar-pin",
+        trigger: wrapper,
+        start: "top top+=100",
+        end: "bottom bottom-=100",
+        pin: sidebar,
+        pinSpacing: true,
+      });
+      rowTriggersRef.current.push(pinTrigger);
+    }
+
     const headerLine = portfolioRef.current?.querySelector(".header-line");
     if (headerLine && !ScrollTrigger.getById("header-line")) {
       const headerTrigger = ScrollTrigger.create({
@@ -353,6 +390,11 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       });
       rowTriggersRef.current.push(headerTrigger);
     }
+
+    return () => {
+      rowTriggersRef.current.forEach((st) => st.kill());
+      rowTriggersRef.current = [];
+    };
   }, [projectsState]);
 
   // Image scroll and Modal logic
@@ -370,12 +412,20 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       },
       { threshold: 0.7 },
     );
-    imageRefs.current.forEach((el) => { if (el) observer.observe(el); });
+    imageRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
     return () => {
-      imageRefs.current.forEach((el) => { if (el) observer.unobserve(el); });
+      imageRefs.current.forEach((el) => {
+        if (el) observer.unobserve(el);
+      });
       observer.disconnect();
     };
   }, [selectedProject, isScrolling]);
+
+  useEffect(() => {
+    setMobileModalImageCount(3);
+  }, [selectedProject]);
 
   const scrollToImage = (index: number) => {
     if (!imageRefs.current[index] || !modalContentRef.current) return;
@@ -384,7 +434,8 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     const element = imageRefs.current[index];
     if (element) {
       const elementPosition = element.offsetTop;
-      const scrollTo = elementPosition - container.clientHeight / 2 + element.clientHeight / 2;
+      const scrollTo =
+        elementPosition - container.clientHeight / 2 + element.clientHeight / 2;
       const startPosition = container.scrollTop;
       const distance = scrollTo - startPosition;
       const duration = 600;
@@ -393,7 +444,8 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-        const ease = (t: number) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        const ease = (t: number) =>
+          t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         container.scrollTop = startPosition + distance * ease(progress);
         if (timeElapsed < duration) requestAnimationFrame(animation);
         else setIsScrolling(false);
@@ -403,9 +455,11 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     }
   };
 
-  const setImageRef = (index: number) => (el: HTMLDivElement | null): void => {
-    imageRefs.current[index] = el;
-  };
+  const setImageRef =
+    (index: number) =>
+    (el: HTMLDivElement | null): void => {
+      imageRefs.current[index] = el;
+    };
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
@@ -418,13 +472,17 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   const nextImage = () => {
     if (selectedProject) {
-      setLightboxIndex((prev) => prev === selectedProject.images.length - 1 ? 0 : prev + 1);
+      setLightboxIndex((prev) =>
+        prev === selectedProject.images.length - 1 ? 0 : prev + 1,
+      );
     }
   };
 
   const prevImage = () => {
     if (selectedProject) {
-      setLightboxIndex((prev) => prev === 0 ? selectedProject.images.length - 1 : prev - 1);
+      setLightboxIndex((prev) =>
+        prev === 0 ? selectedProject.images.length - 1 : prev - 1,
+      );
     }
   };
 
@@ -434,26 +492,42 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
   };
 
   return (
-    <section ref={portfolioRef} id="portfolio" className="md:pt-16 pb-16 md:pb-20 font-sans" style={{ backgroundColor: "var(--havia-offwhite)" }}>
+    <section
+      ref={portfolioRef}
+      id="portfolio"
+      className="md:pt-16 pb-16 md:pb-20 font-sans"
+      style={{ backgroundColor: "var(--havia-offwhite)" }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <div className="hidden md:flex gap-12 lg:gap-16">
           {/* Categories Sidebar */}
           <div className="w-64 flex-shrink-0">
-            <div className="sticky top-24">
-              <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">{h2}</h2>
+            <div ref={sidebarRef} className="relative">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">
+                  {h2}
+                </h2>
                 <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mb-8" />
               </motion.div>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">CATEGORY</h3>
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">
+                    CATEGORY
+                  </h3>
                   <div className="flex flex-col space-y-2">
                     {categoriesNames.map((cat) => (
                       <button
                         key={cat}
                         onClick={() => handleCategoryChange(cat)}
                         className={`relative text-sm transition-all duration-300 text-left ${
-                            activeCategory === cat ? "text-[var(--havia-charcoal)] font-semibold border-l-2 border-[var(--havia-gold)] pl-3" : "text-gray-400 hover:text-gray-600 pl-4"
+                          activeCategory === cat
+                            ? "text-[var(--havia-charcoal)] font-semibold border-l-2 border-[var(--havia-gold)] pl-3"
+                            : "text-gray-400 hover:text-gray-600 pl-4"
                         }`}
                       >
                         {cat}
@@ -467,68 +541,141 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
           {/* Project Grid */}
           <div className="flex-1 min-h-[700px]">
-            <div ref={gridContainerRef} className={`grid grid-cols-3 gap-8 transition-opacity duration-300 ${isLoading ? "opacity-40" : "opacity-100"}`}>
-              {projectsState.map((project, idx) => (
-                <div key={project.id} ref={(el) => { gridItemsRef.current[idx] = el; }} onClick={() => { setSelectedProject(project); setActiveImage(0); }} className="group cursor-pointer">
-                  <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
-                    <Image src={project.image} alt={project.title} fill className="object-cover group-hover:scale-105 transition-all duration-700 ease-out" sizes="33vw" />
-                  </div>
-                  <h3 className="text-sm font-medium text-[var(--havia-charcoal)] tracking-wide mb-1 truncate">{project.title}</h3>
-                  <div className="flex justify-between items-baseline text-xs text-gray-400">
-                    <span>{project.location}</span>
-                    <span>{project.year}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination Controls */}
-            {pagination.total_pages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-12 pb-8">
-                {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-10 h-10 flex items-center justify-center text-sm transition-all duration-300 border ${
-                      currentPage === pageNum
-                        ? "bg-[var(--havia-gold)] border-[var(--havia-gold)] text-white font-bold"
-                        : "border-gray-200 text-gray-400 hover:border-[var(--havia-gold)] hover:text-[var(--havia-gold)] bg-white"
-                    }`}
+            <div ref={contentWrapperRef}>
+              <div
+                ref={gridContainerRef}
+                className={`grid grid-cols-3 gap-8 transition-opacity duration-300 ${isLoading ? "opacity-40" : "opacity-100"}`}
+              >
+                {projectsState.map((project, idx) => (
+                  <div
+                    key={project.id}
+                    ref={(el) => {
+                      gridItemsRef.current[idx] = el;
+                    }}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setActiveImage(0);
+                    }}
+                    className="group cursor-pointer"
                   >
-                    {pageNum}
-                  </button>
+                    <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                        sizes="33vw"
+                      />
+                    </div>
+                    <h3 className="text-sm font-medium text-[var(--havia-charcoal)] tracking-wide mb-1 truncate">
+                      {project.title}
+                    </h3>
+                    <div className="flex justify-between items-baseline text-xs text-gray-400">
+                      <span>{project.location}</span>
+                      <span>{project.year}</span>
+                    </div>
+                  </div>
                 ))}
               </div>
-            )}
+
+              {/* Pagination Controls */}
+              {pagination.total_pages > 1 && (
+                <div className="flex justify-center items-center space-x-2 mt-12 pb-8">
+                  {Array.from(
+                    { length: pagination.total_pages },
+                    (_, i) => i + 1,
+                  ).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 flex items-center justify-center text-sm transition-all duration-300 border ${
+                        currentPage === pageNum
+                          ? "bg-[var(--havia-gold)] border-[var(--havia-gold)] text-white font-bold"
+                          : "border-gray-200 text-gray-400 hover:border-[var(--havia-gold)] hover:text-[var(--havia-gold)] bg-white"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Mobile Layout */}
         <div className="md:hidden">
           <div className="flex justify-between items-center mb-4">
-             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)]">{h2}</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)]">
+                {h2}
+              </h2>
               <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mt-2" />
             </motion.div>
-            <button ref={filterButtonRef} onClick={() => setShowFilterDropdown(!showFilterDropdown)} className="p-2"><SlidersHorizontal size={20} /></button>
+            <button
+              ref={filterButtonRef}
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="p-2"
+            >
+              <SlidersHorizontal size={20} />
+            </button>
           </div>
-          
+
           {showFilterDropdown && (
-            <div ref={dropdownRef} className="w-full mb-6 grid grid-cols-2 gap-2 bg-[var(--havia-offwhite)]">
+            <div
+              ref={dropdownRef}
+              className="w-full mb-6 grid grid-cols-2 gap-2 bg-[var(--havia-offwhite)]"
+            >
               {categoriesNames.map((cat) => (
-                <button key={cat} onClick={() => handleCategoryChange(cat)} className={`text-left text-sm py-1 ${activeCategory === cat ? "text-[var(--havia-charcoal)] font-bold" : "text-gray-400"}`}>{cat}</button>
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`text-left text-sm py-1 ${activeCategory === cat ? "text-[var(--havia-charcoal)] font-bold" : "text-gray-400"}`}
+                >
+                  {cat}
+                </button>
               ))}
             </div>
           )}
 
-          <div className={`grid grid-cols-1 gap-6 ${isLoading ? "opacity-40" : "opacity-100"}`}>
+          <div
+            className={`grid grid-cols-1 gap-6 ${isLoading ? "opacity-40" : "opacity-100"}`}
+          >
             {projectsState.map((project, idx) => (
-              <motion.div key={project.id} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.3 }} transition={{ duration: 0.7, ease: "easeOut", delay: idx === 0 ? 0 : 0.1 }} onClick={() => { setSelectedProject(project); setActiveImage(0); }} className="group cursor-pointer">
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{
+                  duration: 0.7,
+                  ease: "easeOut",
+                  delay: idx === 0 ? 0 : 0.1,
+                }}
+                onClick={() => {
+                  setSelectedProject(project);
+                  setActiveImage(0);
+                }}
+                className="group cursor-pointer"
+              >
                 <div className="relative aspect-[4/3] overflow-hidden mb-2 bg-gray-100">
-                  <Image src={project.image} alt={project.title} fill className="object-cover" />
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="text-sm font-medium">{project.title}</h3>
-                <div className="flex justify-between text-xs text-gray-400"><span>{project.location}</span><span>{project.year}</span></div>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>{project.location}</span>
+                  <span>{project.year}</span>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -536,90 +683,380 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
           {/* Mobile Pagination */}
           {pagination.total_pages > 1 && (
             <div className="flex justify-center space-x-2 mt-8">
-              {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((pageNum) => (
-                <button key={pageNum} onClick={() => setCurrentPage(pageNum)} className={`w-8 h-8 text-xs border ${currentPage === pageNum ? "bg-[var(--havia-gold)] text-white" : "bg-white"}`}>{pageNum}</button>
+              {Array.from(
+                { length: pagination.total_pages },
+                (_, i) => i + 1,
+              ).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 text-xs border ${currentPage === pageNum ? "bg-[var(--havia-gold)] text-white" : "bg-white"}`}
+                >
+                  {pageNum}
+                </button>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Project Modal */}
+      {/* Modal */}
       <AnimatePresence>
         {selectedProject && (
-          <motion.div className="fixed inset-0 z-50 overflow-hidden bg-white" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
-            <div className="absolute top-0 left-0 right-0 z-[70] hidden lg:block"><Header /></div>
-            <div className="lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
-              {/* Thumbnails */}
-              <div className="hidden lg:flex flex-col p-4 overflow-y-auto space-y-4 scrollbar-hide">
-                {selectedProject.images.map((img, i) => (
-                  <button key={i} onClick={() => scrollToImage(i)} className={`relative aspect-[4/3] w-full border-2 transition-all duration-300 ${activeImage === i ? "border-[var(--havia-gold)] scale-[0.98]" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                    <Image src={img} alt="" fill className="object-cover" />
-                  </button>
-                ))}
+          <motion.div
+            className="fixed inset-0 z-50 overflow-hidden font-sans"
+            style={{ backgroundColor: "#ffffff" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            {/* DESKTOP */}
+            <div className="hidden lg:grid lg:grid-cols-[100px_1fr_320px] h-screen pt-20">
+              <div
+                className="flex flex-col justify-center overflow-y-auto p-4 scrollbar-hide"
+                style={{ backgroundColor: "#ffffff" }}
+              >
+                <div className="space-y-4">
+                  {selectedProject.images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToImage(i)}
+                      className={`relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
+                        activeImage === i
+                          ? "scale-[0.98]"
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                      style={{
+                        boxShadow:
+                          activeImage === i
+                            ? `0 0 0 2px ${i === activeImage ? "#c69c3d" : "#9ca3af"}`
+                            : "none",
+                      }}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${i + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
-              {/* Main Image Center */}
-              <div ref={modalContentRef} className="overflow-y-auto px-10 py-10 space-y-10 scroll-smooth scrollbar-hide">
+
+              <div
+                ref={modalContentRef}
+                className="overflow-y-auto scroll-smooth px-10 py-10 space-y-10 scrollbar-hide justify-items-center"
+                style={{ scrollBehavior: "smooth", backgroundColor: "#ffffff" }}
+              >
                 {selectedProject.images.map((img, i) => (
-                  <div key={i} ref={setImageRef(i)} data-index={i} className="relative w-full h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]" onClick={() => openLightbox(i)}>
-                    <Image src={img} alt="" fill className="object-cover rounded-lg" />
+                  <div
+                    key={i}
+                    ref={setImageRef(i)}
+                    data-index={i}
+                    className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+                    onClick={() => openLightbox(i)}
+                  >
+                    <Image
+                      src={img}
+                      alt=""
+                      fill
+                      className="object-cover rounded-lg"
+                    />
                   </div>
                 ))}
               </div>
-              {/* Info Sidebar */}
-              <div className="p-8 overflow-y-auto scrollbar-hide bg-white">
+
+              {/* Info proyek di kanan */}
+              <div
+                className="overflow-y-auto p-8 scrollbar-hide"
+                style={{ backgroundColor: "#ffffff" }}
+              >
                 <div className="space-y-8">
                   <div>
-                    <h2 className="text-2xl font-medium tracking-tight mb-2" style={{ color: "#2c2a29" }}>{selectedProject.title}</h2>
-                    <div className="w-12 h-[2px]" style={{ backgroundColor: "#c69c3d" }} />
+                    <h2
+                      className="text-2xl font-medium tracking-tight mb-2"
+                      style={{ color: "#2c2a29" }}
+                    >
+                      {selectedProject.title}
+                    </h2>
+                    <div
+                      className="w-12 h-[2px]"
+                      style={{ backgroundColor: "#c69c3d" }}
+                    />
                   </div>
+
                   <div className="space-y-3 text-sm">
-                    <p><span className="text-gray-400 inline-block w-20">Location</span> <b style={{ color: "#2c2a29" }}>{selectedProject.location}</b></p>
-                    <p><span className="text-gray-400 inline-block w-20">Year</span> <b style={{ color: "#2c2a29" }}>{selectedProject.year}</b></p>
-                    {selectedProject.client && <p><span className="text-gray-400 inline-block w-20">Client</span> <b style={{ color: "#2c2a29" }}>{selectedProject.client}</b></p>}
-                    <p><span className="text-gray-400 inline-block w-20">Category</span> <b style={{ color: "#2c2a29" }}>{selectedProject.category}</b></p>
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Location
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.location}
+                      </span>
+                    </div>
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Year
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.year}
+                      </span>
+                    </div>
+                    {selectedProject.client && (
+                      <div style={{ color: "#2c2a29" }}>
+                        <span className="text-gray-400 w-20 inline-block">
+                          Client
+                        </span>
+                        <span className="font-medium">
+                          {selectedProject.client}
+                        </span>
+                      </div>
+                    )}
+                    <div style={{ color: "#2c2a29" }}>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Category
+                      </span>
+                      <span className="font-medium">
+                        {selectedProject.category}
+                      </span>
+                    </div>
                   </div>
-                  {selectedProject.scope && selectedProject.scope.length > 0 && (
+
+                  {selectedProject.scope && (
                     <div className="space-y-3 text-sm">
-                      <span className="text-gray-400 w-20 inline-block">Scope</span>
+                      <span className="text-gray-400 w-20 inline-block">
+                        Scope
+                      </span>
                       <div className="flex flex-wrap gap-2">
                         {selectedProject.scope.map((item, idx) => (
-                          <span key={idx} className="text-xs px-3 py-1.5 font-semibold bg-[#f2f1f0]" style={{ color: "#2c2a29" }}>{item}</span>
+                          <span
+                            key={idx}
+                            className="text-xs px-3 py-1.5 font-semibold"
+                            style={{
+                              backgroundColor: "#f2f1f0",
+                              color: "#2c2a29",
+                            }}
+                          >
+                            {item}
+                          </span>
                         ))}
                       </div>
                     </div>
                   )}
+
                   {selectedProject.story && (
                     <div className="pt-2 text-justify">
-                      <p className="text-sm leading-relaxed text-gray-500">{selectedProject.story}</p>
+                      <p className="text-sm leading-relaxed text-gray-400">
+                        {selectedProject.story}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Back Button */}
-            <div className="fixed top-20 left-6 z-[70]">
-              <button onClick={closeModal} className="inline-flex items-center gap-2 text-sm text-[#2c2a29]/60 hover:text-[#c69c3d] transition-colors group">
-                <Undo2 size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-                <span className="border-b border-transparent group-hover:border-[#c69c3d] transition-colors pb-0.5">Back to home</span>
-              </button>
+            {/* MOBILE */}
+            <div className="lg:hidden h-full overflow-y-auto pb-8">
+              <div className="h-20" />
+              <div className="space-y-4 p-4 pt-6">
+                {selectedProject.images
+                  .slice(0, mobileModalImageCount)
+                  .map((img, i) => (
+                    <div
+                      key={i}
+                      className="relative w-full aspect-[16/9] cursor-pointer"
+                      onClick={() => openLightbox(i)}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${selectedProject.title} - ${i + 1}`}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                    </div>
+                  ))}
+                {selectedProject.images.length > 3 && (
+                  <button
+                    onClick={() => {
+                      if (mobileModalImageCount === 3) {
+                        setMobileModalImageCount(selectedProject.images.length);
+                      } else {
+                        setMobileModalImageCount(3);
+                      }
+                    }}
+                    className="w-full py-3 text-sm border border-gray-200 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-[#c69c3d] hover:text-[#c69c3d]"
+                    style={{ color: "#2c2a29" }}
+                  >
+                    <span>
+                      {mobileModalImageCount === 3
+                        ? `Show ${selectedProject.images.length - 3} more pictures`
+                        : "Show less pictures"}
+                    </span>
+                    {mobileModalImageCount === 3 ? (
+                      <ChevronDown
+                        size={16}
+                        className="transition-transform group-hover:translate-y-0.5"
+                      />
+                    ) : (
+                      <ChevronUp
+                        size={16}
+                        className="transition-transform group-hover:-translate-y-0.5"
+                      />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <div className="px-4 mt-6">
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="text-xl font-light tracking-tight mb-2"
+                      style={{ color: "#2c2a29" }}
+                    >
+                      {selectedProject.title}
+                    </h2>
+                    <div
+                      className="w-12 h-[2px]"
+                      style={{ backgroundColor: "#c69c3d" }}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Location
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.location}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Year
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.year}
+                      </span>
+                    </div>
+                    {selectedProject.client && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="text-gray-500 w-20 inline-block">
+                          Client
+                        </span>
+                        <span style={{ color: "#2c2a29" }}>
+                          {selectedProject.client}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Category
+                      </span>
+                      <span style={{ color: "#2c2a29" }}>
+                        {selectedProject.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedProject.scope && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-500 w-20 inline-block">
+                        Scope
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProject.scope.map((item, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs px-3 py-1.5"
+                            style={{
+                              backgroundColor: "#f2f1f0",
+                              color: "#2c2a29",
+                            }}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProject.story && (
+                    <div className="text-justify">
+                      <p
+                        className="text-sm leading-relaxed"
+                        style={{ color: "#2c2a29" }}
+                      >
+                        {selectedProject.story}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Lightbox */}
+      {selectedProject && (
+        <div className="fixed top-20 left-6 z-[70]">
+          <button
+            onClick={closeModal}
+            className="inline-flex items-center gap-2 text-sm text-[#2c2a29]/60 hover:text-[#c69c3d] transition-colors group"
+          >
+            <Undo2
+              size={16}
+              className="group-hover:-translate-x-0.5 transition-transform"
+            />
+            <span className="border-b border-transparent group-hover:border-[#c69c3d] transition-colors pb-0.5">
+              Back to home
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Lightbox (sama seperti sebelumnya) */}
       {lightboxOpen && selectedProject && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center">
-          <button onClick={closeLightbox} className="absolute top-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"><X size={18} /></button>
-          <button onClick={prevImage} className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"><ChevronLeft size={18} /></button>
-          <button onClick={nextImage} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"><ChevronRight size={18} /></button>
+          <button
+            onClick={closeLightbox}
+            className="absolute top-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+
+          <button
+            onClick={prevImage}
+            className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Previous"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <button
+            onClick={nextImage}
+            className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-colors"
+            aria-label="Next"
+          >
+            <ChevronRight size={18} />
+          </button>
+
           <div className="relative w-full h-full max-w-7xl max-h-[90vh] mx-auto p-4">
             <div className="relative w-full h-full">
-              <Image src={selectedProject.images[lightboxIndex]} alt="" fill className="object-contain" priority />
+              <Image
+                src={selectedProject.images[lightboxIndex]}
+                alt={`${selectedProject.title} - Image ${lightboxIndex + 1}`}
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-4 py-2 text-white text-sm rounded-full">{lightboxIndex + 1} / {selectedProject.images.length}</div>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-4 py-2 text-white text-sm rounded-full">
+              {lightboxIndex + 1} / {selectedProject.images.length}
+            </div>
           </div>
         </div>
       )}

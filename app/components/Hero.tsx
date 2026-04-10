@@ -52,21 +52,33 @@ export default function Hero({ cmsData }: { cmsData: any }) {
   const [hoverExplore, setHoverExplore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
 
   // Use CMS hero slides if available
-  const projects: Project[] = (cmsData?.hero_slides && cmsData.hero_slides.length > 0)
-    ? cmsData.hero_slides.map((s: any, i: number) => ({
-        id: s.id || i + 1,
-        image: s.image || staticProjects[i % staticProjects.length]?.image || "/havia-project-1.jpg",
-        category: s.category || (s.heading_h1 ? s.heading_h1.charAt(0).toUpperCase() + s.heading_h1.slice(1).toLowerCase() : staticProjects[i % staticProjects.length]?.category) || "Architecture",
-        heading_h1: s.heading_h1 || "",
-        heading_h2: s.heading_h2 || "",
-      }))
-    : staticProjects;
+  const projects: Project[] =
+    cmsData?.hero_slides && cmsData.hero_slides.length > 0
+      ? cmsData.hero_slides.map((s: any, i: number) => ({
+          id: s.id || i + 1,
+          image:
+            s.image ||
+            staticProjects[i % staticProjects.length]?.image ||
+            "/havia-project-1.jpg",
+          category:
+            s.category ||
+            (s.heading_h1
+              ? s.heading_h1.charAt(0).toUpperCase() +
+                s.heading_h1.slice(1).toLowerCase()
+              : staticProjects[i % staticProjects.length]?.category) ||
+            "Architecture",
+          heading_h1: s.heading_h1 || "",
+          heading_h2: s.heading_h2 || "",
+        }))
+      : staticProjects;
 
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [touchedIndex, setTouchedIndex] = useState<number | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -135,7 +147,13 @@ export default function Hero({ cmsData }: { cmsData: any }) {
       setCursorPos({ x: e.clientX, y: e.clientY });
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
+    const checkTablet = () => {
+      const width = window.innerWidth;
+      const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      setIsTablet(width >= 768 && width < 1024 && isTouch);
+    };
     window.addEventListener("resize", checkMobile);
+    window.addEventListener("resize", checkTablet);
     window.addEventListener("mousemove", move);
 
     setHasAnimated(true);
@@ -145,6 +163,10 @@ export default function Hero({ cmsData }: { cmsData: any }) {
       window.removeEventListener("mousemove", move);
     };
   }, []);
+
+   useEffect(() => {
+      setTouchedIndex(null);
+    }, [mobileIndex]);
 
   const entranceVariants: Variants = {
     hidden: {
@@ -158,7 +180,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
       filter: "blur(0px)",
       transition: {
         duration: 1.0,
-        ease: [0.4, 0, 0.2, 1], 
+        ease: [0.4, 0, 0.2, 1],
         staggerChildren: 0.08,
         delayChildren: 0.2,
       },
@@ -217,7 +239,13 @@ export default function Hero({ cmsData }: { cmsData: any }) {
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.12}
               onDragEnd={handleDragEnd}
-              onTap={() => handleExploreClick(currentProject.category)}
+              onTap={() => {
+                if (touchedIndex === mobileIndex) {
+                  handleExploreClick(currentProject.category);
+                } else {
+                  setTouchedIndex(mobileIndex);
+                }
+              }}
               className="absolute inset-0 cursor-pointer active:cursor-grabbing"
             >
               <Image
@@ -293,7 +321,7 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     );
   };
 
-  // Desktop Layout
+  // Desktop & Tablet Layout
   const renderDesktopHero = () => (
     <motion.div
       variants={containerVariants}
@@ -303,13 +331,29 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     >
       {projects.map((project, index) => {
         const isActive = index === activeIndex;
+
+        const isTouchDevice =
+          typeof window !== "undefined" &&
+          ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
+        const handleCardClick = () => {
+          if (isTouchDevice) {
+            if (isActive) {
+              handleExploreClick(project.category);
+            } else {
+              setActiveIndex(index);
+            }
+          } else {
+            handleExploreClick(project.category);
+          }
+        };
+
         return (
           <motion.div
             key={project.id}
             variants={itemVariants}
-            onMouseEnter={() => setActiveIndex(index)}
-            // Seluruh card dapat diklik hanya jika aktif
-            onClick={() => handleExploreClick(project.category)}
+            onMouseEnter={() => !isTablet && setActiveIndex(index)} 
+            onClick={handleCardClick}
             className={`
             relative h-full overflow-hidden
             transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
@@ -395,8 +439,8 @@ export default function Hero({ cmsData }: { cmsData: any }) {
     <motion.section
       ref={sectionRef}
       className="relative w-full bg-[var(--havia-offwhite)] py-12 md:py-18 overflow-hidden mt-10"
-      onMouseEnter={() => !isMobile && setShowCursor(true)}
-      onMouseLeave={() => !isMobile && setShowCursor(false)}
+      onMouseEnter={() => !isMobile && !isTablet && setShowCursor(true)}
+      onMouseLeave={() => !isMobile && !isTablet && setShowCursor(false)}
       initial="hidden"
       animate={hasAnimated ? "visible" : "hidden"}
       variants={entranceVariants}
@@ -416,15 +460,17 @@ export default function Hero({ cmsData }: { cmsData: any }) {
         >
           <button
             onClick={() => handleExploreClick()}
-            onMouseEnter={() => !isMobile && setHoverExplore(true)}
-            onMouseLeave={() => !isMobile && setHoverExplore(false)}
+            onMouseEnter={() => !isMobile && !isTablet && setHoverExplore(true)}
+            onMouseLeave={() =>
+              !isMobile && !isTablet && setHoverExplore(false)
+            }
             className="group relative flex flex-col items-center"
           >
             <div className="relative flex flex-col items-center cursor-none">
               <div className="flex items-center gap-2 mb-3">
                 <span
                   className={`text-[10px] md:text-xs tracking-[0.2em] font-medium transition-all duration-300 ${
-                    hoverExplore && !isMobile
+                    hoverExplore && !isMobile && !isTablet
                       ? "text-[var(--havia-gold)]"
                       : "text-[var(--havia-charcoal)]/60"
                   }`}
@@ -432,13 +478,15 @@ export default function Hero({ cmsData }: { cmsData: any }) {
                   Explore More Projects
                 </span>
                 <motion.div
-                  animate={{ y: hoverExplore && !isMobile ? 5 : 0 }}
+                  animate={{
+                    y: hoverExplore && !isMobile && !isTablet ? 5 : 0,
+                  }}
                   transition={{ duration: 0.3 }}
                 >
                   <ChevronDown
                     size={12}
                     className={`transition-colors duration-300 ${
-                      hoverExplore && !isMobile
+                      hoverExplore && !isMobile && !isTablet
                         ? "text-[var(--havia-gold)]"
                         : "text-[var(--havia-charcoal)]/40"
                     }`}
@@ -448,14 +496,14 @@ export default function Hero({ cmsData }: { cmsData: any }) {
               <div className="relative w-12 h-px overflow-hidden">
                 <div
                   className={`absolute inset-0 bg-[var(--havia-charcoal)]/40 transition-transform duration-500 ${
-                    hoverExplore && !isMobile
+                    hoverExplore && !isMobile && !isTablet
                       ? "translate-x-0"
                       : "-translate-x-full"
                   }`}
                 />
                 <div
                   className={`absolute inset-0 bg-[var(--havia-gold)] transition-transform duration-500 ${
-                    hoverExplore && !isMobile
+                    hoverExplore && !isMobile && !isTablet
                       ? "translate-x-0"
                       : "translate-x-full"
                   }`}
@@ -481,8 +529,8 @@ export default function Hero({ cmsData }: { cmsData: any }) {
         </motion.div>
       </motion.div>
 
-      {/* Custom Cursor */}
-      {!isMobile && showCursor && (
+      {/* Custom Cursor – only on non‑touch desktop */}
+      {!isMobile && !isTablet && showCursor && (
         <motion.div
           className="pointer-events-none fixed z-50"
           style={{
