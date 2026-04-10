@@ -157,16 +157,16 @@ export default function Contact({ cmsData }: { cmsData: any }) {
                 Home
               </a>
               <a
-                href="#about"
-                className="block hover:text-white transition text-sm md:text-base"
-              >
-                About
-              </a>
-              <a
                 href="#portfolio"
                 className="block hover:text-white transition text-sm md:text-base"
               >
                 Projects
+              </a>
+              <a
+                href="#about"
+                className="block hover:text-white transition text-sm md:text-base"
+              >
+                About
               </a>
               <a
                 href="#trust"
