@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ChevronLeft, ChevronRight, Quote, Play, X } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 
 type Testimonial = {
@@ -12,6 +12,7 @@ type Testimonial = {
   name: string;
   role: string;
   type: "corporate" | "personal";
+  youtube_link?: string;
 };
 
 export default function Trust({ cmsData }: { cmsData: any }) {
@@ -24,7 +25,15 @@ export default function Trust({ cmsData }: { cmsData: any }) {
   const [hoverLeft, setHoverLeft] = useState(false);
   const [hoverRight, setHoverRight] = useState(false);
   const [isHoveringCarousel, setIsHoveringCarousel] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const getYoutubeId = (url?: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url?.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   useEffect(() => {
     const checkScreen = () => {
@@ -54,6 +63,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
         quote: t.quote || "",
         name: t.name || "",
         role: t.role || "",
+        youtube_link: t.youtube_link || "",
         type: (t.type === "personal" ? "personal" : "corporate") as "corporate" | "personal",
       }))
     : staticTestimonials;
@@ -154,7 +164,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
     >
       <div className="absolute right-[-50px] md:right-0 top-0 md:top-1/3 md:-translate-y-1/2 opacity-[0.05] md:opacity-[0.05] pointer-events-none z-0">
         <Image
-          src="/havia-vector.svg"
+          src="/havia-vector.svg" 
           alt="Havia Studio Watermark"
           width={700}
           height={400}
@@ -370,16 +380,41 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                         </div>
                       </div>
 
-                      <div className="relative">
-                        <Quote
-                          className="text-[var(--havia-gold)]/20 mb-2"
-                          size={18}
-                          fill="currentColor"
-                        />
-                        <p className="text-sm md:text-base italic text-[var(--havia-charcoal)]/80 leading-relaxed font-light">
-                          {item.quote}
-                        </p>
-                      </div>
+                      {(() => {
+                        const videoId = getYoutubeId(item.youtube_link);
+                        const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null;
+
+                        if (videoId && thumbnailUrl) {
+                          return (
+                            <div 
+                              className="relative w-full h-32 md:h-40 rounded-lg overflow-hidden cursor-pointer group mt-2"
+                              onClick={() => {
+                                if (position === 0) setActiveVideoId(videoId);
+                              }}
+                            >
+                              <img src={thumbnailUrl} alt="Video thumbnail" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center pointer-events-none">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                  <Play className="text-white w-4 h-4 md:w-5 md:h-5 fill-current ml-1" />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="relative mt-2">
+                            <Quote
+                              className="text-[var(--havia-gold)]/20 mb-2"
+                              size={18}
+                              fill="currentColor"
+                            />
+                            <p className="text-sm md:text-base italic text-[var(--havia-charcoal)]/80 leading-relaxed font-light">
+                              {item.quote}
+                            </p>
+                          </div>
+                        );
+                      })()}
 
                       {position === 0 && (
                         <motion.div
@@ -456,8 +491,38 @@ export default function Trust({ cmsData }: { cmsData: any }) {
               ))}
             </div>
           </div>
-        </div>
       </div>
+      </div>
+
+      {/* VIDEO POPUP MODAL */}
+      <AnimatePresence>
+        {activeVideoId && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          >
+            <button 
+              onClick={() => setActiveVideoId(null)}
+              className="absolute top-6 right-6 text-white hover:text-red-500 transition-colors bg-black/50 p-2 rounded-full"
+            >
+              <X className="w-8 h-8" />
+            </button>
+
+            <div className="w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl relative">
+              <iframe 
+                className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0`} 
+                title="YouTube video player" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
