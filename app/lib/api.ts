@@ -11,40 +11,62 @@ const getBaseUrl = () => {
 };
 
 const API_BASE_URL = getBaseUrl();
+const FETCH_TIMEOUT_MS = 8000; // 8 second timeout
+
+/**
+ * Fetch with automatic timeout using AbortController.
+ * Prevents hanging requests when the backend is unreachable.
+ */
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export async function getLandingPageSettings() {
   noStore();
-  try {
-    // Add timestamp to bypass any intermediate proxy caches
-    const timestamp = new Date().getTime();
-    const fetchUrl = `${API_BASE_URL}/api/haviacms/landingpage/settings?t=${timestamp}`;
-    
-    console.log(`[CMS Fetch] Requesting: ${fetchUrl}`);
+  const timestamp = new Date().getTime();
+  const fetchUrl = `${API_BASE_URL}/api/haviacms/landingpage/settings?t=${timestamp}`;
 
-    const res = await fetch(
-      fetchUrl,
-      {
-        cache: "no-store", 
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-          "Content-Type": "application/json",
+  console.log(`[CMS Fetch] Requesting: ${fetchUrl}`);
+
+  // Retry up to 2 attempts
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetchWithTimeout(
+        fetchUrl,
+        {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Content-Type": "application/json",
+          },
         },
-      },
-    );
+      );
 
-    if (!res.ok) {
-      console.warn(`[CMS Fetch] Error status: ${res.status} for ${fetchUrl}`);
-      return null;
+      if (!res.ok) {
+        console.warn(`[CMS Fetch] Attempt ${attempt}: Error status ${res.status} for ${fetchUrl}`);
+        if (attempt === 2) return null;
+        continue;
+      }
+
+      const json = await res.json();
+      return json?.success && json?.data ? json.data : json;
+    } catch (error: any) {
+      const isTimeout = error?.name === "AbortError";
+      console.error(`[CMS Fetch] Attempt ${attempt} ${isTimeout ? "TIMED OUT" : "FAILED"}:`, error?.message || error);
+      if (attempt === 2) return null;
     }
-
-    const json = await res.json();
-    return json?.success && json?.data ? json.data : json;
-  } catch (error) {
-    console.error("[CMS Fetch] Critical Failure:", error);
-    return null;
   }
+
+  return null;
 }
 
 // Backward-compatible alias
@@ -81,15 +103,19 @@ export async function getProjectPagination(page: number = 1, categoryId: string 
   try {
     const timestamp = new Date().getTime();
     const fetchUrl = `${API_BASE_URL}/api/haviacms/landingpage/settings?page=${page}&category_id=${categoryId}&t=${timestamp}`;
-    
+
     console.log(`[Project Fetch] Requesting: ${fetchUrl}`);
 
-    const res = await fetch(fetchUrl, { cache: "no-store", headers: { "Content-Type": "application/json" } });
+    const res = await fetchWithTimeout(fetchUrl, {
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+    });
 
     if (!res.ok) return { success: false, message: `Error status: ${res.status}` };
     return await res.json();
-  } catch (error) {
-    console.error("[Project Fetch] Failure:", error);
-    return { success: false, message: "Critical failure" };
+  } catch (error: any) {
+    const isTimeout = error?.name === "AbortError";
+    console.error(`[Project Fetch] ${isTimeout ? "TIMED OUT" : "Failure"}:`, error?.message || error);
+    return { success: false, message: isTimeout ? "Request timed out" : "Network error" };
   }
 }
