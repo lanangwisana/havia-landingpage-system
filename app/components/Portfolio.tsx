@@ -201,6 +201,93 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     return false;
   };
 
+  const [isBlurred, setIsBlurred] = useState(false);
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
+    if (isBlurred) setIsBlurred(false);
+    
+    inactivityTimeoutRef.current = setTimeout(() => {
+      if (selectedProject) setIsBlurred(true);
+    }, 5000); // 5 seconds of inactivity triggers blur
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      resetInactivityTimer();
+      // Detect PrintScreen key
+      if (e.key === "PrintScreen" || e.key === "PrtSc" || e.keyCode === 44) {
+        setShowSecurityWarning(true);
+        setIsBlurred(true);
+        setTimeout(() => setShowSecurityWarning(false), 3000);
+      }
+      
+      // Detect common inspection shortcuts
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+        (e.ctrlKey && e.key === "U")
+      ) {
+        e.preventDefault();
+        setShowSecurityWarning(true);
+        setIsBlurred(true);
+        setTimeout(() => setShowSecurityWarning(false), 2000);
+        return false;
+      }
+    };
+
+    const handleBlur = () => {
+      if (selectedProject) setIsBlurred(true);
+    };
+    
+    const handleFocus = () => {
+      setIsBlurred(false);
+      resetInactivityTimer();
+    };
+
+    const handleMouseMove = () => {
+      resetInactivityTimer();
+    };
+
+    const handleMouseLeave = () => {
+      if (selectedProject) setIsBlurred(true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && selectedProject) setIsBlurred(true);
+      else if (!document.hidden) resetInactivityTimer();
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("contextmenu", handleContextMenu);
+
+    if (selectedProject) resetInactivityTimer();
+
+    return () => {
+      if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, [selectedProject]);
+
   const categoriesList: { id: string | number; name: string }[] = (() => {
     if (cmsData?.project_categories && cmsData.project_categories.length > 0) {
       return [
@@ -497,7 +584,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     <section
       ref={portfolioRef}
       id="portfolio"
-      className="pt-20 md:pt-20 pb-20 md:pb-20 font-sans"
+      className="pt-20 md:pt-20 pb-20 md:pb-20 font-sans select-none"
       style={{ backgroundColor: "var(--havia-offwhite)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
@@ -572,6 +659,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                         className="object-cover group-hover:scale-105 transition-all duration-700 ease-out"
                         sizes="33vw"
                       />
+                      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                     </div>
                     <h3 className="text-sm font-medium text-[var(--havia-charcoal)] tracking-wide mb-1 truncate">
                       {project.title}
@@ -680,6 +768,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                     fill
                     className="object-cover"
                   />
+                      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                 </div>
                 <h3 className="text-sm font-medium">{project.title}</h3>
                 <div className="flex justify-between text-xs text-gray-400">
@@ -714,7 +803,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
       <AnimatePresence>
         {selectedProject && (
           <motion.div
-            className="fixed inset-0 z-50 overflow-hidden font-sans"
+            className={`fixed inset-0 z-50 overflow-hidden font-sans transition-all duration-500 ${isBlurred ? "blur-2xl scale-[1.01]" : ""}`}
             style={{ backgroundColor: "#ffffff" }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -752,6 +841,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                         fill
                         className="object-cover"
                       />
+                          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                     </button>
                   ))}
                 </div>
@@ -770,7 +860,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                     className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
                     onClick={() => openLightbox(i)}
                   >
-                    <div
+                                        <div
                       onContextMenu={preventSave}
                       onDragStart={preventSave}
                       className="relative w-full h-full"
@@ -781,6 +871,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                         fill
                         className="object-cover rounded-lg"
                       />
+                      <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/60-lines.png')] mix-blend-overlay" />
                     </div>
                   </div>
                 ))}
@@ -1089,6 +1180,48 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Security Overlays */}
+      <AnimatePresence>
+        {showSecurityWarning && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center pointer-events-none"
+          >
+            <div className="bg-black/80 backdrop-blur-md text-white px-8 py-4 rounded-full border border-white/20 shadow-2xl flex items-center gap-3">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <p className="text-sm tracking-widest uppercase">Security Protection Active</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isBlurred && selectedProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[49] bg-white/40 backdrop-blur-3xl pointer-events-auto flex items-center justify-center"
+          >
+             <motion.p 
+               initial={{ y: 10, opacity: 0 }}
+               animate={{ y: 0, opacity: 1 }}
+               className="text-[var(--havia-charcoal)]/40 text-xs uppercase tracking-[0.3em]"
+             >
+               Interactivity Required
+             </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {selectedProject && !isBlurred && (
+         <div className="fixed bottom-10 right-10 z-[60] pointer-events-none opacity-10 mix-blend-difference">
+            <p className="text-[10px] uppercase tracking-widest text-white transform -rotate-12">Havia Studio Protected Content</p>
+         </div>
       )}
     </section>
   );

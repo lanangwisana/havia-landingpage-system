@@ -145,3 +145,89 @@ html {
   overflow-x: hidden;
   scroll-behavior: smooth;
 }
+
+/* ========== Screenshot Protection ========== */
+
+/* Overlay yang muncul saat screenshot terdeteksi */
+.screenshot-blur-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  pointer-events: all;
+}
+
+
+.screenshot-blur-message {
+  text-align: center;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: protectPulse 1.5s ease-in-out infinite;
+}
+
+.screenshot-blur-message svg {
+  color: var(--havia-gold, #c69c3d);
+  width: 48px;
+  height: 48px;
+}
+
+.screenshot-blur-message h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.screenshot-blur-message p {
+  font-size: 0.95rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+@keyframes protectPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.9;
+  }
+}
+
+/* Konten yang di-blur saat screenshot */
+.screenshot-protected-content {
+  transition: filter 0.15s ease;
+}
+
+.screenshot-protected-content.blurred {
+  filter: blur(30px) brightness(0.3);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Proteksi umum untuk konten sensitif (gambar, dll) */
+.screenshot-protected-content img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: auto;
+}

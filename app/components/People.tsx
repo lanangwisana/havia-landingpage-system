@@ -12,6 +12,7 @@ type TeamMember = {
   role: string;
   description?: string;
   image: string;
+  show_in_management?: boolean;
 };
 
 const staticManagement: TeamMember[] = [
@@ -22,6 +23,7 @@ const staticManagement: TeamMember[] = [
     description:
       "Founder & Principal Architect with over 10 years of experience in residential and commercial design.",
     image: "/havia-team-1.jpg",
+    show_in_management: true
   },
 ];
 
@@ -40,10 +42,11 @@ export default function People({
           role: m.role || "",
           description: m.description || "",
           image: m.image || "/havia-team-1.jpg",
+          show_in_management: !!m.show_in_management,
         }))
       : staticManagement;
 
-  const managementTeam = teamMembers.slice(0, 4);
+  const managementTeam = teamMembers.filter(m => m.show_in_management);
   const fullTeam = teamMembers;
   const displayedMembers = variant === "management" ? managementTeam : fullTeam;
 
