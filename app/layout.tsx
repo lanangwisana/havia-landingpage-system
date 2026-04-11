@@ -2,6 +2,7 @@ import "./globals.css";
 import { Work_Sans } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import ScreenshotProtection from "./components/ScreenshotProtection";
 
 const workSans = Work_Sans({
   subsets: ["latin"],
@@ -68,8 +69,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <ScreenshotProtection>
+          {children}
+        </ScreenshotProtection>
       </body>
     </html>
   );
-}
+}
