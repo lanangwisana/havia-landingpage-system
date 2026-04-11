@@ -196,7 +196,11 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   const h2 = cmsData?.landingpage_portfolio_h2 || "Projects";
 
-  // Categories helper
+  const preventSave = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    return false;
+  };
+
   const categoriesList: { id: string | number; name: string }[] = (() => {
     if (cmsData?.project_categories && cmsData.project_categories.length > 0) {
       return [
@@ -219,7 +223,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
   const categoriesNames = categoriesList.map((c) => c.name);
 
-  // Fetch logic
   const fetchPage = async (page: number, catId: string | number) => {
     setIsLoading(true);
     try {
@@ -254,7 +257,6 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     }
   };
 
-  // Initial load or category/page change
   useEffect(() => {
     const catObj = categoriesList.find((c) => c.name === activeCategory);
     const catId = catObj ? catObj.id : "all";
@@ -495,7 +497,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     <section
       ref={portfolioRef}
       id="portfolio"
-      className="md:pt-16 pb-16 md:pb-20 font-sans"
+      className="pt-20 md:pt-20 pb-20 md:pb-20 font-sans"
       style={{ backgroundColor: "var(--havia-offwhite)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
@@ -558,7 +560,11 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                     }}
                     className="group cursor-pointer"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
+                    <div
+                      onContextMenu={preventSave}
+                      onDragStart={preventSave}
+                      className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100"
+                    >
                       <Image
                         src={project.image}
                         alt={project.title}
@@ -663,7 +669,11 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                 }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[4/3] overflow-hidden mb-2 bg-gray-100">
+                <div
+                  onContextMenu={preventSave}
+                  onDragStart={preventSave}
+                  className="relative aspect-[4/3] overflow-hidden mb-2 bg-gray-100"
+                >
                   <Image
                     src={project.image}
                     alt={project.title}
@@ -722,6 +732,8 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                     <button
                       key={i}
                       onClick={() => scrollToImage(i)}
+                      onContextMenu={preventSave}
+                      onDragStart={preventSave}
                       className={`relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
                         activeImage === i
                           ? "scale-[0.98]"
@@ -758,17 +770,22 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                     className="relative w-[100vh] h-[60vh] cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
                     onClick={() => openLightbox(i)}
                   >
-                    <Image
-                      src={img}
-                      alt=""
-                      fill
-                      className="object-cover rounded-lg"
-                    />
+                    <div
+                      onContextMenu={preventSave}
+                      onDragStart={preventSave}
+                      className="relative w-full h-full"
+                    >
+                      <Image
+                        src={img}
+                        alt=""
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Info proyek di kanan */}
               <div
                 className="overflow-y-auto p-8 scrollbar-hide"
                 style={{ backgroundColor: "#ffffff" }}
@@ -858,6 +875,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             </div>
 
             {/* MOBILE */}
+            {/* MOBILE MODAL */}
             <div className="lg:hidden h-full overflow-y-auto pb-8">
               <div className="h-20" />
               <div className="space-y-4 p-4 pt-6">
@@ -869,12 +887,18 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                       className="relative w-full aspect-[16/9] cursor-pointer"
                       onClick={() => openLightbox(i)}
                     >
-                      <Image
-                        src={img}
-                        alt={`${selectedProject.title} - ${i + 1}`}
-                        fill
-                        className="object-cover rounded-lg"
-                      />
+                      <div
+                        onContextMenu={preventSave}
+                        onDragStart={preventSave}
+                        className="relative w-full h-full"
+                      >
+                        <Image
+                          src={img}
+                          alt={`${selectedProject.title} - ${i + 1}`}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                      </div>
                     </div>
                   ))}
                 {selectedProject.images.length > 3 && (
@@ -1017,7 +1041,7 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
         </div>
       )}
 
-      {/* Lightbox (sama seperti sebelumnya) */}
+      {/* Lightbox */}
       {lightboxOpen && selectedProject && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center">
           <button
@@ -1046,13 +1070,19 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
 
           <div className="relative w-full h-full max-w-7xl max-h-[90vh] mx-auto p-4">
             <div className="relative w-full h-full">
-              <Image
-                src={selectedProject.images[lightboxIndex]}
-                alt={`${selectedProject.title} - Image ${lightboxIndex + 1}`}
-                fill
-                className="object-contain"
-                priority
-              />
+              <div
+                onContextMenu={preventSave}
+                onDragStart={preventSave}
+                className="relative w-full h-full"
+              >
+                <Image
+                  src={selectedProject.images[lightboxIndex]}
+                  alt={`${selectedProject.title} - Image ${lightboxIndex + 1}`}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-4 py-2 text-white text-sm rounded-full">
               {lightboxIndex + 1} / {selectedProject.images.length}

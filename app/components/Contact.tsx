@@ -169,10 +169,10 @@ export default function Contact({ cmsData }: { cmsData: any }) {
                 About
               </a>
               <a
-                href="#trust"
+                href="#people"
                 className="block hover:text-white transition text-sm md:text-base"
               >
-                Client
+                People
               </a>
             </div>
           </div>

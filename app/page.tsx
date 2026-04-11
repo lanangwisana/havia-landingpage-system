@@ -1,9 +1,10 @@
 // app/page.tsx
 import Header from "./components/Header";
 import Hero from "./components/Hero";
-import RequestPortfolio from "./components/RequestPortfolio";
-import About from "./components/About";
 import Portfolio from "./components/Portfolio";
+import About from "./components/About";
+import People from "./components/People";
+import RequestPortfolio from "./components/RequestPortfolio";
 import Trust from "./components/Trust";
 import ContactSection from "./components/Contact";
 import WhatsappCTA from "./components/WhatsappCTA";
@@ -19,9 +20,10 @@ export default async function Home() {
     <SplashScreen>
       <Header cmsData={cmsData} />
       <Hero cmsData={cmsData} />
-      <RequestPortfolio cmsData={cmsData} />
       <Portfolio cmsData={cmsData} />
       <About cmsData={cmsData} />
+      <People cmsData={cmsData} /> 
+      <RequestPortfolio cmsData={cmsData} />
       <Trust cmsData={cmsData} />
       <ContactSection cmsData={cmsData} />
       <WhatsappCTA cmsData={cmsData} />

@@ -19,7 +19,9 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
   const [formData, setFormData] = useState({
     name: "",
     contact: "",
-    interest: "Just exploring your portfolio",
+    interest: "Planning a project",
+    location: "",
+    howDidYouKnow: "",
   });
 
   const downloadText =
@@ -41,7 +43,9 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
         setFormData({
           name: "",
           contact: "",
-          interest: "Just exploring your portfolio",
+          interest: "Planning a project",
+          location: "",
+          howDidYouKnow: "",
         });
       }
     } catch {
@@ -73,7 +77,7 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="w-full mt-20 mb-20 overflow-hidden bg-[#2c2a29]"
+          className="w-full overflow-hidden bg-[#2c2a29]"
         >
           <div className="relative h-48 md:h-64 w-full overflow-hidden">
             <motion.div
@@ -217,6 +221,40 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                               />
                             </div>
 
+                            {/* Field: Lokasi Anda */}
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
+                                Your Location
+                              </label>
+                              <input
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleChange}
+                                placeholder="City, Country"
+                                className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
+                              />
+                            </div>
+
+                            {/* Field: Tahu Havia dari mana? */}
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
+                                How did you know Havia?
+                              </label>
+                              <select
+                                name="howDidYouKnow"
+                                value={formData.howDidYouKnow}
+                                onChange={handleChange}
+                                className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
+                              >
+                                <option value="Instagram">Instagram</option>
+                                <option value="Google">Google</option>
+                                <option value="Referral">
+                                  Friend/Referral
+                                </option>
+                              </select>
+                            </div>
+
                             <div>
                               <label className="block text-xs uppercase tracking-wider mb-2 text-[#c69c3d]">
                                 I am...
@@ -227,10 +265,9 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                                 onChange={handleChange}
                                 className="w-full px-0 py-2 border-0 border-b border-gray-200 focus:border-[#c69c3d] focus:ring-0 transition-colors text-sm bg-transparent text-[#2c2a29]"
                               >
-                                <option>Just exploring your portfolio</option>
                                 <option>Planning a project</option>
                                 <option>Looking for collaboration</option>
-                                <option>Other</option>
+                                <option>Consultation</option>
                               </select>
                             </div>
 
@@ -245,9 +282,7 @@ export default function RequestPortfolio({ cmsData }: { cmsData?: any }) {
                                 className="w-full py-3 text-sm tracking-wide transition-colors flex items-center justify-center gap-2 group bg-[#2c2a29] hover:bg-[#c69c3d] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 <span>
-                                  {isSubmitting
-                                    ? "Sending..."
-                                    : "Send Request"}
+                                  {isSubmitting ? "Sending..." : "Send Request"}
                                 </span>
                                 <Send
                                   size={14}
