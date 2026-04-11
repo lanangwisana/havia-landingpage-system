@@ -21,23 +21,31 @@ export default function Header({ cmsData }: { cmsData?: any }) {
   const menuItems = [
     { label: "Projects", href: "#portfolio" },
     { label: "About", href: "#about" },
-    { label: "Client", href: "#trust" },
+    { label: "People", href: "#people" },
     { label: "Contact", href: "#contact" },
   ];
 
-  const handleMenuClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleMenuClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
     e.preventDefault();
-    const targetId = href.substring(1); 
+
+    const targetId = href.replace("#", "");
     const isHome = pathname === "/" || pathname === "";
 
     if (isHome) {
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        setMobileOpen(false);
-        targetElement.scrollIntoView({ behavior: "smooth" });
-      } else {
-        console.warn(`Element with id "${targetId}" not found.`);
-      }
+      setMobileOpen(false);
+
+      setTimeout(() => {
+        const targetElement = document.getElementById(targetId);
+
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: "smooth" });
+        } else {
+          console.warn(`Element with id "${targetId}" not found.`);
+        }
+      }, 100);
     } else {
       setMobileOpen(false);
       window.location.href = `/${href}`;
