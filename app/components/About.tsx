@@ -138,7 +138,6 @@ export default function About({ cmsData }: { cmsData: any }) {
       gsap.set(".about-desc", { opacity: 0, y: 50 });
       gsap.set(".about-stats", { opacity: 0, y: 30 });
       gsap.set(".about-image", { opacity: 0, scale: 0.9, x: 50 });
-      gsap.set(".about-cta", { opacity: 0, y: 20 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -176,11 +175,6 @@ export default function About({ cmsData }: { cmsData: any }) {
         .to(
           ".about-image",
           { opacity: 1, scale: 1, x: 0, duration: 1.5, ease: "power2.out" },
-          "+=0.3",
-        )
-        .to(
-          ".about-cta",
-          { opacity: 1, y: 0, duration: 1, ease: "power2.out" },
           "+=0.3",
         );
     }, sectionRef);
@@ -252,65 +246,17 @@ export default function About({ cmsData }: { cmsData: any }) {
                 </p>
               </div>
             </div>
-
-            {/* Desktop button */}
-            <div className="about-cta opacity-0 translate-y-6 mt-12 hidden lg:block">
-              <a
-                href="/about?tab=team"
-                onClick={(e) => handleNavigate(e, "/about?tab=team")}
-                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300 cursor-pointer"
-              >
-                <span className="text-xs uppercase tracking-wider font-sans">
-                  View More
-                </span>
-                <ArrowRight
-                  size={14}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </a>
-            </div>
           </div>
 
           {/* Right column */}
           <div>
-            <a
-              href="/about?tab=team"
-              onClick={(e) => handleNavigate(e, "/about?tab=team")}
-              className="about-image opacity-0 scale-95 translate-x-12 relative aspect-[4/3] w-full overflow-hidden rounded-lg shadow-2xl block cursor-none"
-              onMouseEnter={() => !isMobile && setIsHoveringImage(true)}
-              onMouseLeave={() => !isMobile && setIsHoveringImage(false)}
-            >
+            <div className="about-image opacity-0 scale-95 translate-x-12 relative aspect-[4/3] w-full overflow-hidden rounded-lg shadow-2xl block cursor-none">
               <Image
                 src={cmsData?.landingpage_about_image || "/havia-photo-1.png"}
                 alt="Havia Studio Team"
                 fill
                 className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                <p className="text-xs uppercase tracking-wider text-white/90 text-center font-sans">
-                  The Team
-                </p>
-                <p className="text-[10px] text-white/70 text-center font-sans">
-                  Creative minds behind the work
-                </p>
-              </div>
-            </a>
-
-            {/* Mobile button */}
-            <div className="about-cta opacity-0 translate-y-6 mt-8 lg:hidden">
-              <a
-                href="/about?tab=team"
-                onClick={(e) => handleNavigate(e, "/about?tab=team")}
-                className="inline-flex items-center gap-2 bg-[var(--havia-charcoal)] border border-[var(--havia-gold)] text-white px-6 py-3 rounded-full hover:bg-[var(--havia-gold)] hover:border-[var(--havia-gold)] hover:text-[var(--havia-charcoal)] transition-all duration-300 cursor-pointer"
-              >
-                <span className="text-xs uppercase tracking-wider font-sans">
-                  View More
-                </span>
-                <ArrowRight
-                  size={14}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </a>
             </div>
           </div>
         </div>

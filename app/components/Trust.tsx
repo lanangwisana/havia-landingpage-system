@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Quote, Play, X } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Testimonial = {
   id: number;
@@ -30,9 +30,10 @@ export default function Trust({ cmsData }: { cmsData: any }) {
 
   const getYoutubeId = (url?: string) => {
     if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url?.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    return match && match[2].length === 11 ? match[2] : null;
   };
 
   useEffect(() => {
@@ -46,27 +47,78 @@ export default function Trust({ cmsData }: { cmsData: any }) {
 
   // CMS data with static fallbacks
   const staticTestimonials: Testimonial[] = [
-    { id: 1, image: "/logo-client-1.png", quote: "Havia Studio delivered beyond expectation. The design feels timeless and deeply thoughtful.", name: "Edelweiss Hospital", role: "Bandung", type: "corporate" },
-    { id: 2, image: "/logo-client-4.png", quote: "Professional, detail-oriented, and visionary in every aspect of the project execution.", name: "Cendekia Muda Islamic School", role: "Bandung", type: "corporate" },
-    { id: 3, image: "/logo-client-person.png", quote: "Rumah impian kami jadi kenyataan. Terima kasih Havia Studio!", name: "Bapak & Ibu Wijaya", role: "Client Residential", type: "personal" },
-    { id: 4, image: "/logo-client-person.png", quote: "Detail dan pelayanannya luar biasa. Sangat recommended!", name: "Sarah", role: "Client Residential", type: "personal" },
-    { id: 5, image: "/logo-client-person.png", quote: "Komunikasi lancar, hasil sesuai ekspektasi. Makasih tim Havia!", name: "Fajar Prasetyo", role: "Client Residential", type: "personal" },
+    {
+      id: 1,
+      image: "/logo-client-1.png",
+      quote:
+        "Havia Studio delivered beyond expectation. The design feels timeless and deeply thoughtful.",
+      name: "Edelweiss Hospital",
+      role: "Bandung",
+      type: "corporate",
+    },
+    {
+      id: 2,
+      image: "/logo-client-4.png",
+      quote:
+        "Professional, detail-oriented, and visionary in every aspect of the project execution.",
+      name: "Cendekia Muda Islamic School",
+      role: "Bandung",
+      type: "corporate",
+    },
+    {
+      id: 3,
+      image: "/logo-client-person.png",
+      quote: "Rumah impian kami jadi kenyataan. Terima kasih Havia Studio!",
+      name: "Bapak & Ibu Wijaya",
+      role: "Client Residential",
+      type: "personal",
+    },
+    {
+      id: 4,
+      image: "/logo-client-person.png",
+      quote: "Detail dan pelayanannya luar biasa. Sangat recommended!",
+      name: "Sarah",
+      role: "Client Residential",
+      type: "personal",
+    },
+    {
+      id: 5,
+      image: "/logo-client-person.png",
+      quote: "Komunikasi lancar, hasil sesuai ekspektasi. Makasih tim Havia!",
+      name: "Fajar Prasetyo",
+      role: "Client Residential",
+      type: "personal",
+    },
   ];
 
-  const staticClients = ["/logo-client-1.png", "/logo-client-2.png", "/logo-client-3.png", "/logo-client-4.png", "/logo-client-5.png", "/logo-client-6.png", "/logo-client-7.png", "/logo-client-8.png", "/logo-client-9.png", "/logo-client-10.png", "/logo-client-11.png", "/logo-client-12.png"];
+  const staticClients = [
+    "/logo-client-1.png",
+    "/logo-client-2.png",
+    "/logo-client-3.png",
+    "/logo-client-4.png",
+    "/logo-client-5.png",
+    "/logo-client-6.png",
+    "/logo-client-7.png",
+    "/logo-client-8.png",
+    "/logo-client-9.png",
+    "/logo-client-10.png",
+  ];
 
   // Use CMS testimonials if available, otherwise static
-  const cmsTestimonials: Testimonial[] = (cmsData?.testimonials && cmsData.testimonials.length > 0)
-    ? cmsData.testimonials.map((t: any) => ({
-        id: t.id,
-        image: t.image || "/logo-client-person.png",
-        quote: t.quote || "",
-        name: t.name || "",
-        role: t.role || "",
-        youtube_link: t.youtube_link || "",
-        type: (t.type === "personal" ? "personal" : "corporate") as "corporate" | "personal",
-      }))
-    : staticTestimonials;
+  const cmsTestimonials: Testimonial[] =
+    cmsData?.testimonials && cmsData.testimonials.length > 0
+      ? cmsData.testimonials.map((t: any) => ({
+          id: t.id,
+          image: t.image || "/logo-client-person.png",
+          quote: t.quote || "",
+          name: t.name || "",
+          role: t.role || "",
+          youtube_link: t.youtube_link || "",
+          type: (t.type === "personal" ? "personal" : "corporate") as
+            | "corporate"
+            | "personal",
+        }))
+      : staticTestimonials;
 
   const testimonials = cmsTestimonials;
 
@@ -75,15 +127,20 @@ export default function Trust({ cmsData }: { cmsData: any }) {
   );
 
   // Use CMS client logos if available
-  const clients: string[] = (cmsData?.client_logos && cmsData.client_logos.length > 0)
-    ? cmsData.client_logos.map((c: any) => c.image)
-    : staticClients;
+  const clients: string[] =
+    cmsData?.client_logos && cmsData.client_logos.length > 0
+      ? cmsData.client_logos.map((c: any) => c.image)
+      : staticClients;
 
   // CMS headings
-  const testimonialHeading = cmsData?.landingpage_trust_heading || "Testimonial";
-  const btnCorporateLabel = cmsData?.landingpage_trust_btn_corporate || "Corporate";
-  const btnPersonalLabel = cmsData?.landingpage_trust_btn_personal || "Personal";
-  const clientHeading = cmsData?.landingpage_trust_client_heading || "Our Clients";
+  const testimonialHeading =
+    cmsData?.landingpage_trust_heading || "Testimonial";
+  const btnCorporateLabel =
+    cmsData?.landingpage_trust_btn_corporate || "Corporate";
+  const btnPersonalLabel =
+    cmsData?.landingpage_trust_btn_personal || "Personal";
+  const clientHeading =
+    cmsData?.landingpage_trust_client_heading || "Our Clients";
 
   const nextSlide = () => {
     if (filteredTestimonials.length === 0) return;
@@ -117,7 +174,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
       if (!isHoveringCarousel) {
         nextSlide();
       }
-    }, 5000); 
+    }, 5000);
   };
 
   const stopAutoScroll = () => {
@@ -159,16 +216,17 @@ export default function Trust({ cmsData }: { cmsData: any }) {
   return (
     <section
       id="trust"
-      className="relative py-12 md:py-16 bg-[var(--havia-offwhite)]"
+      className="relative py-12 md:py-16 bg-[var(--havia-offwhite)] overflow-hidden"
       style={{ fontFamily: 'Helvetica, "Open Sans", sans-serif' }}
     >
-      <div className="absolute right-[-50px] md:right-0 top-0 md:top-1/3 md:-translate-y-1/2 opacity-[0.05] md:opacity-[0.05] pointer-events-none z-0">
+      {/* Watermark Logo */}
+      <div className="absolute right-[-50px] md:right-0 top-[-40px] md:top-[-60px] pointer-events-none z-0 opacity-[0.05] md:opacity-[0.05]">
         <Image
-          src="/havia-vector.svg" 
+          src="/havia-vector.svg"
           alt="Havia Studio Watermark"
-          width={700}
-          height={400}
-          className="object-contain w-[420px] md:w-[700px]"
+          width={900}
+          height={600}
+          className="object-contain w-[500px] md:w-[800px]"
         />
       </div>
 
@@ -219,7 +277,7 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           </div>
         </div>
 
-        {/* TESTIMONIALS */}
+        {/* TESTIMONIALS CAROUSEL */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -280,9 +338,11 @@ export default function Trust({ cmsData }: { cmsData: any }) {
             <AnimatePresence initial={false} custom={direction}>
               {filteredTestimonials.map((item, idx) => {
                 const position = getCardPosition(idx);
+                const videoId = getYoutubeId(item.youtube_link);
+                const hasVideo = !!videoId;
 
                 if (!isMobile && Math.abs(position) > 2) return null;
-                if (isMobile && position !== 0) return null; 
+                if (isMobile && position !== 0) return null;
 
                 return (
                   <motion.div
@@ -359,50 +419,71 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                         strokeWidth={0.5}
                       />
 
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className={`object-contain transition-all duration-500 rounded-lg ${
-                              position !== 0 ? "grayscale opacity-30" : ""
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[var(--havia-charcoal)]">
-                            {item.name}
-                          </p>
-                          <p className="text-[10px] md:text-xs text-[var(--havia-gold)] mt-0.5 tracking-wider font-medium">
-                            {item.role}
-                          </p>
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const videoId = getYoutubeId(item.youtube_link);
-                        const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null;
-
-                        if (videoId && thumbnailUrl) {
-                          return (
-                            <div 
-                              className="relative w-full h-32 md:h-40 rounded-lg overflow-hidden cursor-pointer group mt-2"
-                              onClick={() => {
-                                if (position === 0) setActiveVideoId(videoId);
-                              }}
-                            >
-                              <img src={thumbnailUrl} alt="Video thumbnail" className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center pointer-events-none">
-                                <div className="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
-                                  <Play className="text-white w-4 h-4 md:w-5 md:h-5 fill-current ml-1" />
-                                </div>
+                      {hasVideo ? (
+                        // Layout untuk testimonial video
+                        <>
+                          {/* Video thumbnail */}
+                          <div
+                            className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group mb-2"
+                            onClick={() => {
+                              if (position === 0) setActiveVideoId(videoId);
+                            }}
+                          >
+                            <img
+                              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                              alt="Video thumbnail"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                              <div className="w-12 h-12 md:w-16 md:h-16 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-[#c69c3d]/80">
+                                <Play className="text-white w-6 h-6 md:w-8 md:h-8 fill-current ml-0.5" />
                               </div>
                             </div>
-                          );
-                        }
-
-                        return (
+                          </div>
+                          {/* Quote */}
+                          <div className="relative">
+                            <Quote
+                              className="text-[var(--havia-gold)]/20 mb-2"
+                              size={18}
+                              fill="currentColor"
+                            />
+                            <p className="text-sm md:text-base italic text-[var(--havia-charcoal)]/80 leading-relaxed font-light">
+                              {item.quote}
+                            </p>
+                          </div>
+                          {/* Nama & Role */}
+                          <div className="mt-4">
+                            <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[var(--havia-charcoal)]">
+                              {item.name}
+                            </p>
+                            <p className="text-[10px] md:text-xs text-[var(--havia-gold)] mt-0.5 tracking-wider font-medium">
+                              {item.role}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        // Layout untuk testimonial biasa (tanpa video)
+                        <>
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className={`object-contain transition-all duration-500 rounded-lg ${
+                                  position !== 0 ? "grayscale opacity-30" : ""
+                                }`}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[var(--havia-charcoal)]">
+                                {item.name}
+                              </p>
+                              <p className="text-[10px] md:text-xs text-[var(--havia-gold)] mt-0.5 tracking-wider font-medium">
+                                {item.role}
+                              </p>
+                            </div>
+                          </div>
                           <div className="relative mt-2">
                             <Quote
                               className="text-[var(--havia-gold)]/20 mb-2"
@@ -413,8 +494,8 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                               {item.quote}
                             </p>
                           </div>
-                        );
-                      })()}
+                        </>
+                      )}
 
                       {position === 0 && (
                         <motion.div
@@ -457,69 +538,76 @@ export default function Trust({ cmsData }: { cmsData: any }) {
           )}
         </motion.div>
 
-        {/* CLIENT LOGO */}
-        <div className="border-t border-[var(--havia-charcoal)]/10 pt-16 pb-10 overflow-hidden">
+        {/* Client Logo Section */}
+        <div className="border-t border-[var(--havia-charcoal)]/10 pt-16 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-4"
+            className="text-center mb-10"
           >
             <h2 className="text-2xl font-light tracking-tight text-[var(--havia-charcoal)] mb-4">
               {clientHeading}
             </h2>
-            <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mx-auto mb-8" />
+            <div className="header-line w-12 h-[2px] bg-[var(--havia-gold)]/50 mx-auto" />
           </motion.div>
 
-          <div className="relative w-full overflow-hidden">
-            <div className="flex animate-client-scroll gap-4 md:gap-6">
-              {[...clients, ...clients].map((logo, i) => (
-                <div
-                  key={i}
-                  className="min-w-[100px] md:min-w-[120px] h-[60px] md:h-[80px] flex items-center justify-center bg-[var(--havia-white)] border border-[var(--havia-charcoal)]/10 rounded-lg transition-all duration-300 group"
-                >
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={logo}
-                      alt="Client Logo"
-                      fill
-                      className="object-contain p-3 md:p-4 opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
-                    />
-                  </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6 justify-items-center items-center">
+            {clients.map((logo, idx) => (
+              <div
+                key={idx}
+                className="w-[60px] sm:w-[80px] md:w-[100px] h-[40px] sm:h-[50px] md:h-[60px] flex items-center justify-center"
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={logo}
+                    alt="Client Logo"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-      </div>
+        </div>
       </div>
 
-      {/* VIDEO POPUP MODAL */}
+      {/* Video Popup Modal */}
       <AnimatePresence>
         {activeVideoId && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+            onClick={() => setActiveVideoId(null)}
           >
-            <button 
-              onClick={() => setActiveVideoId(null)}
-              className="absolute top-6 right-6 text-white hover:text-red-500 transition-colors bg-black/50 p-2 rounded-full"
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25 }}
+              className="relative w-full max-w-5xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-8 h-8" />
-            </button>
-
-            <div className="w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl relative">
-              <iframe 
-                className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0`} 
-                title="YouTube video player" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
-            </div>
+              <button
+                onClick={() => setActiveVideoId(null)}
+                className="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors bg-black/50 p-2 rounded-full z-10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
