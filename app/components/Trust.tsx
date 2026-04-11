@@ -422,9 +422,9 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                       {hasVideo ? (
                         // Layout untuk testimonial video
                         <>
-                          {/* Video thumbnail */}
+                           {/* Video thumbnail */}
                           <div
-                            className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group mb-2"
+                            className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group mb-6"
                             onClick={() => {
                               if (position === 0) setActiveVideoId(videoId);
                             }}
@@ -440,6 +440,29 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                               </div>
                             </div>
                           </div>
+
+                          {/* Logo, Nama & Role */}
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className={`object-contain transition-all duration-500 rounded-lg ${
+                                  position !== 0 ? "grayscale opacity-30" : ""
+                                }`}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[var(--havia-charcoal)]">
+                                {item.name}
+                              </p>
+                              <p className="text-[10px] md:text-xs text-[var(--havia-gold)] mt-0.5 tracking-wider font-medium">
+                                {item.role}
+                              </p>
+                            </div>
+                          </div>
+
                           {/* Quote */}
                           <div className="relative">
                             <Quote
@@ -449,15 +472,6 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                             />
                             <p className="text-sm md:text-base italic text-[var(--havia-charcoal)]/80 leading-relaxed font-light">
                               {item.quote}
-                            </p>
-                          </div>
-                          {/* Nama & Role */}
-                          <div className="mt-4">
-                            <p className="text-xs md:text-sm uppercase tracking-[0.15em] font-semibold text-[var(--havia-charcoal)]">
-                              {item.name}
-                            </p>
-                            <p className="text-[10px] md:text-xs text-[var(--havia-gold)] mt-0.5 tracking-wider font-medium">
-                              {item.role}
                             </p>
                           </div>
                         </>
