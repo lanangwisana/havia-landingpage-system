@@ -31,10 +31,11 @@ export default function ScreenshotProtection({
 
   useEffect(() => {
     // Delay sebelum aktifkan proteksi (1.5 detik setelah mount)
-    // Ini mencegah false positive saat halaman pertama kali load
     const readyTimeout = setTimeout(() => {
       isReadyRef.current = true;
     }, 1500);
+
+    // ============ DESKTOP PROTECTION ============
 
     // 1. Deteksi PrintScreen dan shortcut screenshot
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,7 +43,6 @@ export default function ScreenshotProtection({
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
         activateBlur();
-        // Kosongkan clipboard
         try {
           navigator.clipboard.writeText("");
         } catch {}
@@ -56,7 +56,7 @@ export default function ScreenshotProtection({
         return;
       }
 
-      // Ctrl + Shift + S (browser save / some screenshot tools)
+      // Ctrl + Shift + S
       if (e.ctrlKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
         activateBlur();
@@ -77,7 +77,7 @@ export default function ScreenshotProtection({
         return;
       }
 
-      // Alt + PrintScreen (capture active window)
+      // Alt + PrintScreen
       if (e.altKey && (e.key === "PrintScreen" || e.code === "PrintScreen")) {
         e.preventDefault();
         activateBlur();
@@ -85,7 +85,7 @@ export default function ScreenshotProtection({
       }
     };
 
-    // 2. Deteksi keyup untuk PrintScreen (beberapa browser hanya fire di keyup)
+    // 2. Deteksi keyup untuk PrintScreen
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
@@ -96,31 +96,30 @@ export default function ScreenshotProtection({
       }
     };
 
-    // 3. Deteksi visibility change (beberapa screenshot tools trigger ini)
+    // 3. Deteksi visibility change
     const handleVisibilityChange = () => {
       if (document.hidden) {
         activateBlur();
       }
     };
 
-    // 4. Blokir right-click (mencegah "Save Image As" dll)
-    const handleContextMenu = (e: MouseEvent) => {
+    // 4. Blokir right-click
+    const handleContextMenu = (e: Event) => {
       e.preventDefault();
       return false;
     };
 
-    // 5. Blokir drag (mencegah drag gambar keluar)
+    // 5. Blokir drag
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
       return false;
     };
 
-    // 6. Blokir Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+P
+    // 6. Blokir copy shortcuts
     const handleCopyShortcuts = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         const blockedKeys = ["c", "a", "u", "p", "s"];
         if (blockedKeys.includes(e.key.toLowerCase())) {
-          // Izinkan Ctrl+C hanya di input/textarea
           const target = e.target as HTMLElement;
           if (
             target.tagName === "INPUT" ||
@@ -134,6 +133,81 @@ export default function ScreenshotProtection({
       }
     };
 
+    // ============ MOBILE PROTECTION ============
+
+    // 7. Blokir long-press pada gambar (mencegah "Save Image" di mobile)
+    const handleTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" || target.tagName === "CANVAS") {
+        // Prevent long press context menu on images
+        target.addEventListener(
+          "contextmenu",
+          (ev) => {
+            ev.preventDefault();
+            return false;
+          },
+          { once: true }
+        );
+      }
+    };
+
+    // 8. Blokir copy event
+    const handleCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      // Tulis pesan ke clipboard alih-alih konten
+      if (e.clipboardData) {
+        e.clipboardData.setData(
+          "text/plain",
+          "Konten ini dilindungi. © Havia Studio"
+        );
+      }
+    };
+
+    // 9. Blokir select all pada mobile
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+    };
+
+    // 10. Deteksi resize cepat (beberapa screenshot tools resize window)
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+    const handleResize = () => {
+      const widthDiff = Math.abs(window.innerWidth - lastWidth);
+      const heightDiff = Math.abs(window.innerHeight - lastHeight);
+
+      // Jika ukuran berubah drastis dalam waktu singkat, mungkin screenshot tool
+      if (widthDiff > 100 || heightDiff > 100) {
+        activateBlur();
+      }
+
+      lastWidth = window.innerWidth;
+      lastHeight = window.innerHeight;
+    };
+
+    // 11. Deteksi focus/blur untuk mobile (beberapa Android screenshot trigger ini)
+    const handleWindowBlurMobile = () => {
+      // Hanya aktifkan di mobile (layar kecil)
+      if (window.innerWidth <= 768) {
+        activateBlur();
+      }
+    };
+
     // Register semua event listeners
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
@@ -141,6 +215,13 @@ export default function ScreenshotProtection({
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("keydown", handleCopyShortcuts);
+    document.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("selectstart", handleSelectStart);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("blur", handleWindowBlurMobile);
 
     // Cleanup
     return () => {
@@ -151,6 +232,11 @@ export default function ScreenshotProtection({
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("keydown", handleCopyShortcuts);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("selectstart", handleSelectStart);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("blur", handleWindowBlurMobile);
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
       }
@@ -159,12 +245,16 @@ export default function ScreenshotProtection({
 
   return (
     <>
-      {/* Overlay blur ketika screenshot terdeteksi */}
+      {/* Watermark overlay — selalu muncul di mobile, hanya terlihat di screenshot */}
+      <div className="screenshot-watermark" aria-hidden="true">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <span key={i}>HAVIA STUDIO • CONFIDENTIAL</span>
+        ))}
+      </div>
+
+      {/* Overlay blur ketika screenshot terdeteksi (desktop) */}
       {isBlurred && (
-        <div
-          className="screenshot-blur-overlay"
-          aria-hidden="true"
-        >
+        <div className="screenshot-blur-overlay" aria-hidden="true">
           <div className="screenshot-blur-message">
             <svg
               width="48"
@@ -186,7 +276,7 @@ export default function ScreenshotProtection({
         </div>
       )}
 
-      {/* Konten utama yang akan di-blur */}
+      {/* Konten utama */}
       <div
         className={`screenshot-protected-content ${isBlurred ? "blurred" : ""}`}
       >
