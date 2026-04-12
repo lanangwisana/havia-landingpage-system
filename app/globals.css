@@ -148,7 +148,46 @@ html {
 
 /* ========== Screenshot Protection ========== */
 
-/* Overlay yang muncul saat screenshot terdeteksi */
+/* --- Watermark Overlay (perlindungan mobile) --- */
+/* Watermark diagonal semi-transparan yang muncul di screenshot.
+   Sangat tipis saat normal, tapi terlihat di hasil screenshot karena
+   kompresi gambar screenshot memperjelas pattern ini. */
+.screenshot-watermark {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 99998;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 60px;
+  transform: rotate(-35deg);
+  opacity: 0.025;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.screenshot-watermark span {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--havia-charcoal, #2c2a29);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* Di dark sections, watermark jadi lebih terang */
+@media (prefers-color-scheme: dark) {
+  .screenshot-watermark span {
+    color: #ffffff;
+  }
+}
+
+/* --- Overlay Blur (deteksi screenshot desktop) --- */
 .screenshot-blur-overlay {
   position: fixed;
   top: 0;
@@ -166,7 +205,6 @@ html {
   -webkit-backdrop-filter: blur(40px);
   pointer-events: all;
 }
-
 
 .screenshot-blur-message {
   text-align: center;
@@ -208,7 +246,7 @@ html {
   }
 }
 
-/* Konten yang di-blur saat screenshot */
+/* --- Konten yang di-blur saat screenshot --- */
 .screenshot-protected-content {
   transition: filter 0.15s ease;
 }
@@ -222,7 +260,7 @@ html {
   -ms-user-select: none;
 }
 
-/* Proteksi umum untuk konten sensitif (gambar, dll) */
+/* --- Proteksi Gambar (Desktop + Mobile) --- */
 .screenshot-protected-content img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
@@ -230,4 +268,53 @@ html {
   -o-user-drag: none;
   user-drag: none;
   pointer-events: auto;
+  /* Blokir long-press save image di iOS */
+  -webkit-touch-callout: none;
+}
+
+/* --- Mobile-Specific Protection --- */
+
+/* Blokir seleksi teks di seluruh halaman (kecuali form inputs) */
+.screenshot-protected-content {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* iOS: blokir callout menu saat long-press */
+  -webkit-touch-callout: none;
+}
+
+/* Izinkan select hanya di form fields */
+.screenshot-protected-content input,
+.screenshot-protected-content textarea,
+.screenshot-protected-content [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Tambahan proteksi untuk elemen media */
+.screenshot-protected-content video,
+.screenshot-protected-content canvas,
+.screenshot-protected-content svg {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent image long-press popup di Android Chrome & iOS Safari */
+.screenshot-protected-content img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Android: tambahan blokir via pointer-events pada gambar saat touch */
+@media (hover: none) and (pointer: coarse) {
+  .screenshot-watermark {
+    /* Sedikit lebih terlihat di mobile karena screenshot lebih sering */
+    opacity: 0.035;
+  }
 }
