@@ -251,13 +251,6 @@ export default function ScreenshotProtection({
 
   return (
     <>
-      {/* Watermark overlay — teks diagonal yang ikut tercapture saat screenshot */}
-      <div className="screenshot-watermark" aria-hidden="true">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <span key={i}>HAVIA STUDIO © PROTECTED</span>
-        ))}
-      </div>
-
       {/* Overlay blur — ada di DOM selalu tapi hidden, agar bisa instant show */}
       <div
         id="ss-blur-overlay"
