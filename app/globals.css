@@ -148,37 +148,6 @@ html {
 
 /* ========== Screenshot Protection ========== */
 
-/* --- Watermark Overlay --- */
-/* Watermark diagonal yang terlihat di screenshot.
-   Pada layar normal, sangat tipis. Di screenshot, menjadi penanda. */
-.screenshot-watermark {
-  position: fixed;
-  top: -100%;
-  left: -100%;
-  width: 400%;
-  height: 400%;
-  z-index: 99998;
-  pointer-events: none;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  justify-content: center;
-  gap: 40px;
-  transform: rotate(-30deg);
-  opacity: 0.04;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.screenshot-watermark span {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 5px;
-  color: #888888;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-
 /* --- Overlay Blur (deteksi screenshot) --- */
 .screenshot-blur-overlay {
   position: fixed;
@@ -289,16 +258,6 @@ html {
 
 /* --- Mobile-Specific --- */
 @media (hover: none) and (pointer: coarse) {
-  .screenshot-watermark {
-    /* Lebih terlihat di mobile */
-    opacity: 0.06;
-  }
-  
-  .screenshot-watermark span {
-    font-size: 11px;
-    letter-spacing: 3px;
-  }
-
   /* Blur lebih cepat di mobile (tanpa transition) */
   .screenshot-protected-content {
     transition: none;
