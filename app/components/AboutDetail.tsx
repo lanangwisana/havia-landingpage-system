@@ -323,6 +323,8 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
                     fill
                     className="object-cover transition-all duration-700 group-hover:scale-105"
                   />
+                  {/* Overlay to prevent direct image right-click actions */}
+                  <div className="absolute inset-0 z-10" />
                 </div>
                 {img.description ? (
                   <p className="text-sm font-light text-[var(--havia-charcoal)]/80 mt-3 md:mt-4 leading-relaxed line-clamp-2">
@@ -383,6 +385,8 @@ export default function AboutDetail({ cmsData }: { cmsData?: any }) {
                 className="object-contain max-h-[80vh] w-auto h-auto"
                 priority
               />
+              {/* Overlay for lightbox image */}
+              <div className="absolute inset-0 z-10" />
             </div>
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6 rounded-b-lg">
               <p className="text-white text-sm md:text-base text-center max-w-3xl mx-auto leading-relaxed">
