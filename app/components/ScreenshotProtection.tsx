@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import CustomContextMenu from "./CustomContextMenu";
+import { AnimatePresence } from "framer-motion";
 
 export default function ScreenshotProtection({
   children,
@@ -10,6 +12,8 @@ export default function ScreenshotProtection({
   const [isBlurred, setIsBlurred] = useState(false);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isReadyRef = useRef(false);
+  const keysPressed = useRef<Set<string>>(new Set());
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Fungsi untuk mengaktifkan blur INSTANT (tanpa delay, untuk mobile)
   const activateBlurInstant = useCallback(() => {
@@ -57,6 +61,11 @@ export default function ScreenshotProtection({
     }, 3000);
   }, []);
 
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
   useEffect(() => {
     // Delay sebelum aktifkan proteksi
     const readyTimeout = setTimeout(() => {
@@ -66,6 +75,21 @@ export default function ScreenshotProtection({
     // ============ DESKTOP PROTECTION ============
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Track pressed keys for modifier detection
+      keysPressed.current.add(e.key.toLowerCase());
+      
+      // MACBOOK PROTECTION: Detect Command + Shift
+      // We blur even before they press 3, 4, or 5
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isCmdPressed = e.metaKey;
+      const isShiftPressed = e.shiftKey;
+
+      if (isCmdPressed && isShiftPressed) {
+        activateBlur();
+        // Clear clipboard just in case
+        try { navigator.clipboard.writeText(""); } catch {}
+      }
+
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
         activateBlur();
@@ -82,7 +106,7 @@ export default function ScreenshotProtection({
         activateBlur();
         return;
       }
-      if (e.metaKey && e.shiftKey && ["3", "4", "5"].includes(e.key)) {
+      if (e.metaKey && e.shiftKey && ["3", "4", "5", "6"].includes(e.key)) {
         e.preventDefault();
         activateBlur();
         return;
@@ -100,6 +124,7 @@ export default function ScreenshotProtection({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      keysPressed.current.delete(e.key.toLowerCase());
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
         activateBlur();
@@ -113,10 +138,6 @@ export default function ScreenshotProtection({
       }
     };
 
-    const handleContextMenu = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
 
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
@@ -206,10 +227,14 @@ export default function ScreenshotProtection({
       e.preventDefault();
     };
 
-    // Deteksi window blur (mobile)
+    // Deteksi window blur (iOS & general)
     const handleWindowBlur = () => {
-      if (window.innerWidth <= 768) {
+      // Lebih agresif di mobile karena sering dipakai untuk trigger screenshot
+      const isMobile = window.innerWidth <= 1024;
+      if (isMobile) {
         activateBlurInstant();
+      } else {
+        activateBlur();
       }
     };
 
@@ -217,16 +242,16 @@ export default function ScreenshotProtection({
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("contextmenu", handleContextMenu as any);
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("keydown", handleCopyShortcuts);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("resize", handleWindowBlur);
     // PENTING: touchstart TIDAK passive agar bisa diproses cepat
     document.addEventListener("touchstart", handleTouchStartMulti, { passive: true });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
-    document.addEventListener("touchstart", handleTouchStartImg, { passive: true });
     document.addEventListener("copy", handleCopy);
     document.addEventListener("selectstart", handleSelectStart);
-    window.addEventListener("blur", handleWindowBlur);
 
     // Cleanup
     return () => {
@@ -234,15 +259,15 @@ export default function ScreenshotProtection({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("contextmenu", handleContextMenu as any);
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("keydown", handleCopyShortcuts);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("resize", handleWindowBlur);
       document.removeEventListener("touchstart", handleTouchStartMulti);
       document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchstart", handleTouchStartImg);
       document.removeEventListener("copy", handleCopy);
       document.removeEventListener("selectstart", handleSelectStart);
-      window.removeEventListener("blur", handleWindowBlur);
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
       }
@@ -277,6 +302,17 @@ export default function ScreenshotProtection({
           <p>Screenshot tidak diizinkan pada halaman ini</p>
         </div>
       </div>
+
+      {/* Custom Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <CustomContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Konten utama */}
       <div
