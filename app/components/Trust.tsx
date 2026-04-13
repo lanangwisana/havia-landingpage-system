@@ -329,7 +329,8 @@ export default function Trust({ cmsData }: { cmsData: any }) {
             </>
           )}
 
-          <div className="relative min-h-[380px] md:min-h-[400px] flex items-center justify-center overflow-visible">
+          {/* Sesuaikan min-height agar card lebih ke atas */}
+          <div className="relative min-h-[420px] md:min-h-[480px] flex items-center justify-center overflow-visible">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
               <div className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] border border-[var(--havia-charcoal)] rounded-full animate-spin-slow" />
               <div className="absolute w-[250px] h-[250px] md:w-[450px] md:h-[450px] border border-[var(--havia-charcoal)] rounded-full animate-spin-reverse opacity-50" />
@@ -422,9 +423,8 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                       {hasVideo ? (
                         // Layout untuk testimonial video
                         <>
-                           {/* Video thumbnail */}
                           <div
-                            className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group mb-6"
+                            className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group"
                             onClick={() => {
                               if (position === 0) setActiveVideoId(videoId);
                             }}
@@ -441,9 +441,8 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                             </div>
                           </div>
 
-                          {/* Logo, Nama & Role */}
-                          <div className="flex items-center gap-4 mb-6">
-                            <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0">
                               <Image
                                 src={item.image}
                                 alt={item.name}
@@ -463,7 +462,6 @@ export default function Trust({ cmsData }: { cmsData: any }) {
                             </div>
                           </div>
 
-                          {/* Quote */}
                           <div className="relative">
                             <Quote
                               className="text-[var(--havia-gold)]/20 mb-2"
