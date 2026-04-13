@@ -452,81 +452,70 @@ export default function Hero({ cmsData }: { cmsData: any }) {
       >
         {isMobile ? renderMobileHero() : renderDesktopHero()}
 
-        <motion.div
-          variants={exploreButtonVariants}
-          initial="hidden"
-          animate={hasAnimated ? "visible" : "hidden"}
-          className="absolute bottom-[-100px] left-1/2 -translate-x-1/2"
+      <motion.div
+  variants={exploreButtonVariants}
+  initial="hidden"
+  animate={hasAnimated ? "visible" : "hidden"}
+  className="absolute bottom-[-100px] left-0 w-full flex justify-center"
+>
+  <button
+    onClick={() => handleExploreClick()}
+    onMouseEnter={() => !isMobile && !isTablet && setHoverExplore(true)}
+    onMouseLeave={() => !isMobile && !isTablet && setHoverExplore(false)}
+    className="group relative flex flex-col items-center"
+  >
+    <div className="relative flex flex-col items-center cursor-none">
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className={`text-[10px] md:text-xs tracking-[0.2em] font-medium transition-all duration-300 ${
+            hoverExplore && !isMobile && !isTablet
+              ? "text-[var(--havia-gold)]"
+              : "text-[var(--havia-charcoal)]/60"
+          }`}
         >
-          <button
-            onClick={() => handleExploreClick()}
-            onMouseEnter={() => !isMobile && !isTablet && setHoverExplore(true)}
-            onMouseLeave={() =>
-              !isMobile && !isTablet && setHoverExplore(false)
-            }
-            className="group relative flex flex-col items-center"
-          >
-            <div className="relative flex flex-col items-center cursor-none">
-              <div className="flex items-center gap-2 mb-3">
-                <span
-                  className={`text-[10px] md:text-xs tracking-[0.2em] font-medium transition-all duration-300 ${
-                    hoverExplore && !isMobile && !isTablet
-                      ? "text-[var(--havia-gold)]"
-                      : "text-[var(--havia-charcoal)]/60"
-                  }`}
-                >
-                  Explore More Projects
-                </span>
-                <motion.div
-                  animate={{
-                    y: hoverExplore && !isMobile && !isTablet ? 5 : 0,
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ChevronDown
-                    size={12}
-                    className={`transition-colors duration-300 ${
-                      hoverExplore && !isMobile && !isTablet
-                        ? "text-[var(--havia-gold)]"
-                        : "text-[var(--havia-charcoal)]/40"
-                    }`}
-                  />
-                </motion.div>
-              </div>
-              <div className="relative w-12 h-px overflow-hidden">
-                <div
-                  className={`absolute inset-0 bg-[var(--havia-charcoal)]/40 transition-transform duration-500 ${
-                    hoverExplore && !isMobile && !isTablet
-                      ? "translate-x-0"
-                      : "-translate-x-full"
-                  }`}
-                />
-                <div
-                  className={`absolute inset-0 bg-[var(--havia-gold)] transition-transform duration-500 ${
-                    hoverExplore && !isMobile && !isTablet
-                      ? "translate-x-0"
-                      : "translate-x-full"
-                  }`}
-                />
-              </div>
-              <div className="w-8 h-px bg-[var(--havia-charcoal)]/20 mt-2" />
-            </div>
-            <motion.div
-              animate={{ y: [0, 5, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="mt-3"
-            >
-              <ChevronDown
-                size={16}
-                className="text-[var(--havia-charcoal)]/40"
-              />
-            </motion.div>
-          </button>
+          Explore More Projects
+        </span>
+        <motion.div
+          animate={{ y: hoverExplore && !isMobile && !isTablet ? 5 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ChevronDown
+            size={12}
+            className={`transition-colors duration-300 ${
+              hoverExplore && !isMobile && !isTablet
+                ? "text-[var(--havia-gold)]"
+                : "text-[var(--havia-charcoal)]/40"
+            }`}
+          />
         </motion.div>
+      </div>
+      <div className="relative w-12 h-px overflow-hidden">
+        <div
+          className={`absolute inset-0 bg-[var(--havia-charcoal)]/40 transition-transform duration-500 ${
+            hoverExplore && !isMobile && !isTablet
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }`}
+        />
+        <div
+          className={`absolute inset-0 bg-[var(--havia-gold)] transition-transform duration-500 ${
+            hoverExplore && !isMobile && !isTablet
+              ? "translate-x-0"
+              : "translate-x-full"
+          }`}
+        />
+      </div>
+      <div className="w-8 h-px bg-[var(--havia-charcoal)]/20 mt-2" />
+    </div>
+    <motion.div
+      animate={{ y: [0, 5, 0] }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+      className="mt-3"
+    >
+      <ChevronDown size={16} className="text-[var(--havia-charcoal)]/40" />
+    </motion.div>
+  </button>
+</motion.div>
       </motion.div>
 
       {/* Custom Cursor – only on non‑touch desktop */}

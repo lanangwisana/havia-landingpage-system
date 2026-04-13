@@ -580,6 +580,29 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
     setLightboxOpen(false);
   };
 
+  const getPagination = () => {
+  const total = pagination.total_pages;
+  const current = currentPage;
+  const delta = 2;
+  const range: (number | string)[] = [];
+
+  for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+    range.push(i);
+  }
+
+  if (current - delta > 2) {
+    range.unshift("...");
+  }
+  if (current + delta < total - 1) {
+    range.push("...");
+  }
+
+  range.unshift(1);
+  if (total !== 1) range.push(total);
+
+  return [...new Set(range)];
+};
+
   return (
     <section
       ref={portfolioRef}
@@ -672,27 +695,64 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
                 ))}
               </div>
 
-              {/* Pagination Controls */}
-              {pagination.total_pages > 1 && (
-                <div className="flex justify-center items-center space-x-2 mt-12 pb-8">
-                  {Array.from(
-                    { length: pagination.total_pages },
-                    (_, i) => i + 1,
-                  ).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-10 h-10 flex items-center justify-center text-sm transition-all duration-300 border ${
-                        currentPage === pageNum
-                          ? "bg-[var(--havia-gold)] border-[var(--havia-gold)] text-white font-bold"
-                          : "border-gray-200 text-gray-400 hover:border-[var(--havia-gold)] hover:text-[var(--havia-gold)] bg-white"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
-                </div>
-              )}
+             {/* Pagination - Desktop */}
+      {pagination.total_pages > 1 && (
+        <div className="hidden md:flex justify-center items-center gap-6 mt-16">
+          {/* Prev button */}
+          <button
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+                portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            className="p-2 border border-[#2c2a29]/20 rounded-full hover:border-[var(--havia-gold)] hover:text-[var(--havia-gold)] transition disabled:opacity-30"
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {/* Page numbers with ellipsis */}
+          <div className="flex items-center gap-4">
+            {getPagination().map((page, idx) =>
+              page === "..." ? (
+                <span key={`dots-${idx}`} className="text-[#2c2a29]/40">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => {
+                    setCurrentPage(page as number);
+                    portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`text-sm transition-colors ${
+                    currentPage === page
+                      ? "text-[var(--havia-gold)]"
+                      : "text-[#2c2a29]/40 hover:text-[var(--havia-gold)]"
+                  }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+          </div>
+
+          {/* Next button */}
+          <button
+            onClick={() => {
+              if (currentPage < pagination.total_pages) {
+                setCurrentPage(currentPage + 1);
+                portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            className="p-2 border border-[#2c2a29]/20 rounded-full hover:border-[var(--havia-gold)] hover:text-[var(--havia-gold)] transition disabled:opacity-30"
+            disabled={currentPage === pagination.total_pages}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
             </div>
           </div>
         </div>
@@ -779,23 +839,38 @@ export default function Portfolio({ cmsData }: { cmsData: any }) {
             ))}
           </div>
 
-          {/* Mobile Pagination */}
-          {pagination.total_pages > 1 && (
-            <div className="flex justify-center space-x-2 mt-8">
-              {Array.from(
-                { length: pagination.total_pages },
-                (_, i) => i + 1,
-              ).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 text-xs border ${currentPage === pageNum ? "bg-[var(--havia-gold)] text-white" : "bg-white"}`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Pagination - Mobile (tetap sederhana atau bisa diadaptasi) */}
+      {pagination.total_pages > 1 && (
+        <div className="flex md:hidden justify-center items-center gap-3 mt-12">
+          <button
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+                portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            className="p-2 border border-[#2c2a29]/20 rounded-full hover:border-[var(--havia-gold)] disabled:opacity-30"
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <span className="text-sm text-[#2c2a29]/60">
+            {currentPage} / {pagination.total_pages}
+          </span>
+          <button
+            onClick={() => {
+              if (currentPage < pagination.total_pages) {
+                setCurrentPage(currentPage + 1);
+                portfolioRef.current?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            className="p-2 border border-[#2c2a29]/20 rounded-full hover:border-[var(--havia-gold)] disabled:opacity-30"
+            disabled={currentPage === pagination.total_pages}
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      )}
         </div>
       </div>
 
