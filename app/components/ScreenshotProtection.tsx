@@ -10,16 +10,17 @@ export default function ScreenshotProtection({
   children: React.ReactNode;
 }) {
   const [isBlurred, setIsBlurred] = useState(false);
+  const [isComponentVisible, setIsComponentVisible] = useState(false);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isReadyRef = useRef(false);
   const keysPressed = useRef<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Fungsi untuk mengaktifkan blur INSTANT (tanpa delay, untuk mobile)
   const activateBlurInstant = useCallback(() => {
-    if (!isReadyRef.current) return;
+    if (!isReadyRef.current || !isComponentVisible) return;
 
-    const content = document.querySelector(".screenshot-protected-content");
+    const content = contentRef.current;
     const overlay = document.getElementById("ss-blur-overlay");
     if (content) {
       content.classList.add("blurred");
@@ -43,10 +44,10 @@ export default function ScreenshotProtection({
         overlay.style.display = "none";
       }
     }, 4000);
-  }, []);
+  }, [isComponentVisible]);
 
   const activateBlur = useCallback(() => {
-    if (!isReadyRef.current) return;
+    if (!isReadyRef.current || !isComponentVisible) return;
 
     setIsBlurred(true);
 
@@ -57,40 +58,41 @@ export default function ScreenshotProtection({
     blurTimeoutRef.current = setTimeout(() => {
       setIsBlurred(false);
     }, 3000);
-  }, []);
+  }, [isComponentVisible]);
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
-  // KUNCI SCROLL SAAT BLUR AKTIF
   useEffect(() => {
-    if (isBlurred) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
-      };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsComponentVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } 
+    );
+
+    if (contentRef.current) {
+      observer.observe(contentRef.current);
     }
-  }, [isBlurred]);
+
+    return () => {
+      if (contentRef.current) {
+        observer.unobserve(contentRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const readyTimeout = setTimeout(() => {
       isReadyRef.current = true;
     }, 2000);
 
-    // ============ DESKTOP PROTECTION ============
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressed.current.add(e.key.toLowerCase());
 
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const isCmdPressed = e.metaKey;
       const isShiftPressed = e.shiftKey;
 
@@ -169,7 +171,6 @@ export default function ScreenshotProtection({
       }
     };
 
-    // ============ MOBILE PROTECTION ============
     const handleTouchStartMulti = (e: TouchEvent) => {
       if (e.touches.length >= 3) {
         activateBlurInstant();
@@ -193,7 +194,10 @@ export default function ScreenshotProtection({
       }
       e.preventDefault();
       if (e.clipboardData) {
-        e.clipboardData.setData("text/plain", "Konten ini dilindungi. © Havia Studio");
+        e.clipboardData.setData(
+          "text/plain",
+          "Konten ini dilindungi. © Havia Studio"
+        );
       }
     };
 
@@ -218,7 +222,6 @@ export default function ScreenshotProtection({
       }
     };
 
-    // Register listeners global (tetap dipasang)
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -253,34 +256,15 @@ export default function ScreenshotProtection({
   }, [activateBlur, activateBlurInstant]);
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Overlay blur — hanya menutupi area komponen ini */}
+    <>
+      {/* Overlay */}
       <div
         id="ss-blur-overlay"
+        className="screenshot-blur-overlay"
         aria-hidden="true"
-        style={{
-          position: 'absolute',
-          display: isBlurred ? 'flex' : 'none',
-          inset: 0,
-          zIndex: 9999,
-          background: 'rgba(0, 0, 0, 0.95)',
-          backdropFilter: 'blur(50px)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'all',
-        }}
+        style={{ display: isBlurred ? "flex" : "none" }}
       >
-        <div
-          className="screenshot-blur-message"
-          style={{
-            textAlign: 'center',
-            margin: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
+        <div className="screenshot-blur-message">
           <svg
             width="48"
             height="48"
@@ -295,12 +279,11 @@ export default function ScreenshotProtection({
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <circle cx="12" cy="16" r="1" />
           </svg>
-          <h3 style={{ margin: 0 }}>Konten Dilindungi</h3>
-          <p style={{ margin: 0, opacity: 0.8 }}>Screenshot tidak diizinkan pada halaman ini</p>
+          <h3>Konten Dilindungi</h3>
+          <p>Screenshot tidak diizinkan pada halaman ini</p>
         </div>
       </div>
 
-      {/* Custom Context Menu (tetap global) */}
       <AnimatePresence>
         {contextMenu && (
           <CustomContextMenu
@@ -311,9 +294,12 @@ export default function ScreenshotProtection({
         )}
       </AnimatePresence>
 
-      {/* Konten utama yang akan diproteksi blurnya */}
-      <div className={`screenshot-protected-content ${isBlurred ? "blurred" : ""}`}>
+      <div
+        ref={contentRef}
+        className={`screenshot-protected-content ${isBlurred ? "blurred" : ""}`}
+      >
         {children}
       </div>
-    </div>
-  )};
+    </>
+  );
+}
