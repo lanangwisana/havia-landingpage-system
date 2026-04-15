@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Havia Studio | Architecture, Interior & Masterplan Design Studio",
     description:
       "Studio arsitektur dan desain interior berbasis di Bandung yang menghadirkan solusi desain fungsional, estetis, dan berkelanjutan.",
-    url: "https://web.havia.id/",
+    url: "https://havia.id/",
     siteName: "Havia Studio",
     images: [
       {

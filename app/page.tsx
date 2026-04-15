@@ -18,18 +18,19 @@ export default async function Home() {
   const cmsData = await getSettings();
 
   return (
-    <ScreenshotProtection>
-      <SplashScreen>
-        <Header cmsData={cmsData} />
-        <Hero cmsData={cmsData} />
+    <SplashScreen>
+      <Header cmsData={cmsData} />
+      <Hero cmsData={cmsData} />
+      {/* Hanya Portfolio yang dilindungi */}
+      <ScreenshotProtection>
         <Portfolio cmsData={cmsData} />
-        <About cmsData={cmsData} />
-        <People cmsData={cmsData} /> 
-        <RequestPortfolio cmsData={cmsData} />
-        <Trust cmsData={cmsData} />
-        <ContactSection cmsData={cmsData} />
-        <WhatsappCTA cmsData={cmsData} />
-      </SplashScreen>
-    </ScreenshotProtection>
+      </ScreenshotProtection>
+      <About cmsData={cmsData} />
+      <People cmsData={cmsData} /> 
+      <RequestPortfolio cmsData={cmsData} />
+      <Trust cmsData={cmsData} />
+      <ContactSection cmsData={cmsData} />
+      <WhatsappCTA cmsData={cmsData} />
+    </SplashScreen>
   );
 }
