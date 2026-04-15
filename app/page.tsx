@@ -21,12 +21,11 @@ export default async function Home() {
     <SplashScreen>
       <Header cmsData={cmsData} />
       <Hero cmsData={cmsData} />
-      {/* Hanya Portfolio yang dilindungi */}
       <ScreenshotProtection>
         <Portfolio cmsData={cmsData} />
       </ScreenshotProtection>
       <About cmsData={cmsData} />
-      <People cmsData={cmsData} /> 
+      <People cmsData={cmsData} />
       <RequestPortfolio cmsData={cmsData} />
       <Trust cmsData={cmsData} />
       <ContactSection cmsData={cmsData} />
