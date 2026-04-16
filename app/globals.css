@@ -209,7 +209,7 @@ html {
 
 /* --- Konten Protection --- */
 .screenshot-protected-content {
-  transition: filter 0.05s ease;
+  transition: none !important;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -218,7 +218,9 @@ html {
 }
 
 .screenshot-protected-content.blurred {
-  filter: blur(40px) brightness(0.2) !important;
+  filter: blur(40px) brightness(0) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
