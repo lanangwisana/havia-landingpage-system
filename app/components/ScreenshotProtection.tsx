@@ -19,15 +19,23 @@ export default function ScreenshotProtection({
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  // Refs untuk melacak dimensi layar (untuk memfilter resize bar alamat di mobile)
+  const lastWidthRef = useRef(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      lastWidthRef.current = window.innerWidth;
+    }
+  }, []);
+
   // Fungsi untuk mengaktifkan blur INSTANT (tanpa delay, untuk mobile)
   const activateBlurInstant = useCallback(() => {
     if (!isReadyRef.current) return;
 
     // Langsung manipulasi DOM untuk kecepatan milidetik
-    // Ini krusial untuk mengejar os-level screenshot capture
     if (contentRef.current) {
       contentRef.current.classList.add("blurred");
-      contentRef.current.style.opacity = "0"; // Sembunyikan instan
+      contentRef.current.style.opacity = "0"; 
       contentRef.current.style.visibility = "hidden";
     }
     if (overlayRef.current) {
@@ -76,7 +84,7 @@ export default function ScreenshotProtection({
   };
 
   useEffect(() => {
-    // Delay lebih cepat agar proteksi aktif segera setelah load (500ms)
+    // Delay proteksi aktif
     const readyTimeout = setTimeout(() => {
       isReadyRef.current = true;
     }, 500);
@@ -84,10 +92,8 @@ export default function ScreenshotProtection({
     // ============ DESKTOP PROTECTION ============
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Track pressed keys for modifier detection
       keysPressed.current.add(e.key.toLowerCase());
       
-      // MACBOOK PROTECTION: Detect Command + Shift
       const isCmdPressed = e.metaKey;
       const isShiftPressed = e.shiftKey;
 
@@ -133,7 +139,6 @@ export default function ScreenshotProtection({
       }
     };
 
-
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
       return false;
@@ -153,15 +158,19 @@ export default function ScreenshotProtection({
       }
     };
 
-    // Deteksi window blur (iOS & Android hardware events)
+    // Deteksi window blur
     const handleWindowBlur = () => {
-      // Hardware screenshot biasanya memicu blur pada window
       activateBlurInstant();
     };
 
-    // Listeners tambahan untuk menangkap perpindahan layar lebih cepat
-    const handleFocusOut = () => activateBlurInstant();
-    const handlePageHide = () => activateBlurInstant();
+    // Deteksi Resize (Hanya aktif jika LEBAR berubah, abaikan tinggi untuk URL bar HP)
+    const handleResize = () => {
+      const currentWidth = window.innerWidth;
+      if (currentWidth !== lastWidthRef.current) {
+        lastWidthRef.current = currentWidth;
+        activateBlurInstant();
+      }
+    };
 
     // Register listeners
     document.addEventListener("keydown", handleKeyDown);
@@ -170,9 +179,7 @@ export default function ScreenshotProtection({
     document.addEventListener("contextmenu", handleContextMenu as any);
     document.addEventListener("dragstart", handleDragStart);
     window.addEventListener("blur", handleWindowBlur);
-    window.addEventListener("focusout", handleFocusOut);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("resize", handleWindowBlur);
+    window.addEventListener("resize", handleResize);
     
     document.addEventListener("touchstart", handleTouchStartMulti, { passive: true });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
@@ -186,9 +193,7 @@ export default function ScreenshotProtection({
       document.removeEventListener("contextmenu", handleContextMenu as any);
       document.removeEventListener("dragstart", handleDragStart);
       window.removeEventListener("blur", handleWindowBlur);
-      window.removeEventListener("focusout", handleFocusOut);
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("resize", handleWindowBlur);
+      window.removeEventListener("resize", handleResize);
       document.removeEventListener("touchstart", handleTouchStartMulti);
       document.removeEventListener("touchmove", handleTouchMove);
       if (blurTimeoutRef.current) {
