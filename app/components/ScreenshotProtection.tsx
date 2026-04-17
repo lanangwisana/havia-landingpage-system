@@ -10,117 +10,99 @@ export default function ScreenshotProtection({
   children: React.ReactNode;
 }) {
   const [isBlurred, setIsBlurred] = useState(false);
+  const [isComponentVisible, setIsComponentVisible] = useState(false);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isReadyRef = useRef(false);
   const keysPressed = useRef<Set<string>>(new Set());
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-
-  // Refs untuk akses DOM langsung (kecepatan maksimal bypass React render cycle)
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Refs untuk melacak dimensi layar (untuk memfilter resize bar alamat di mobile)
-  const lastWidthRef = useRef(0);
+  const activateBlurInstant = useCallback(
+    (duration = 4000) => {
+      if (!isReadyRef.current || !isComponentVisible) return;
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      lastWidthRef.current = window.innerWidth;
-    }
-  }, []);
+      const content = contentRef.current;
+      const overlay = document.getElementById("ss-blur-overlay");
+      if (content) content.classList.add("blurred");
+      if (overlay) overlay.style.display = "flex";
+      setIsBlurred(true);
 
-  // Fungsi untuk mengaktifkan blur INSTANT (tanpa delay, untuk mobile)
-  const activateBlurInstant = useCallback(() => {
-    if (!isReadyRef.current) return;
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = setTimeout(() => {
+        setIsBlurred(false);
+        if (content) content.classList.remove("blurred");
+        if (overlay) overlay.style.display = "none";
+      }, duration);
+    },
+    [isComponentVisible],
+  );
 
-    // Langsung manipulasi DOM untuk kecepatan milidetik
-    if (contentRef.current) {
-      contentRef.current.classList.add("blurred");
-      contentRef.current.style.opacity = "0"; 
-      contentRef.current.style.visibility = "hidden";
-    }
-    if (overlayRef.current) {
-      overlayRef.current.style.display = "flex";
-      overlayRef.current.style.opacity = "1";
-    }
-
-    setIsBlurred(true);
-
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-    }
-
-    blurTimeoutRef.current = setTimeout(() => {
-      setIsBlurred(false);
-      if (contentRef.current) {
-        contentRef.current.classList.remove("blurred");
-        contentRef.current.style.opacity = "1";
-        contentRef.current.style.visibility = "visible";
-      }
-      if (overlayRef.current) {
-        overlayRef.current.style.display = "none";
-        overlayRef.current.style.opacity = "0";
-      }
-    }, 4000);
-  }, []);
-
-  // Fungsi blur normal (via state)
-  const activateBlur = useCallback(() => {
-    if (!isReadyRef.current) return;
-
-    setIsBlurred(true);
-
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-    }
-
-    blurTimeoutRef.current = setTimeout(() => {
-      setIsBlurred(false);
-    }, 3000);
-  }, []);
+  const activateBlur = useCallback(
+    (duration = 3000) => {
+      if (!isReadyRef.current || !isComponentVisible) return;
+      setIsBlurred(true);
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = setTimeout(() => setIsBlurred(false), duration);
+    },
+    [isComponentVisible],
+  );
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
+  // Intersection Observer
   useEffect(() => {
-    // Delay proteksi aktif
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsComponentVisible(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    if (contentRef.current) observer.observe(contentRef.current);
+    return () => {
+      if (contentRef.current) observer.unobserve(contentRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     const readyTimeout = setTimeout(() => {
       isReadyRef.current = true;
-    }, 500);
+    }, 2000);
 
-    // ============ DESKTOP PROTECTION ============
-
+    // === KEYBOARD EVENTS ===
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressed.current.add(e.key.toLowerCase());
-      
-      const isCmdPressed = e.metaKey;
-      const isShiftPressed = e.shiftKey;
 
-      if (isCmdPressed && isShiftPressed) {
+      if (e.metaKey && e.shiftKey) {
         activateBlur();
-        try { navigator.clipboard.writeText(""); } catch {}
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
       }
-
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
-        activateBlurInstant();
-        try { navigator.clipboard.writeText(""); } catch {}
+        activateBlur();
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
         return;
       }
       if (e.metaKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
-        activateBlurInstant();
+        activateBlur();
         return;
       }
       if (e.ctrlKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
-        activateBlurInstant();
+        activateBlur();
         return;
       }
       if (e.metaKey && e.shiftKey && ["3", "4", "5", "6"].includes(e.key)) {
         e.preventDefault();
-        activateBlurInstant();
+        activateBlur();
         return;
       }
     };
@@ -129,62 +111,98 @@ export default function ScreenshotProtection({
       keysPressed.current.delete(e.key.toLowerCase());
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
-        activateBlurInstant();
+        activateBlur();
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
       }
     };
 
+    // === VISIBILITY ===
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        activateBlurInstant();
-      }
+      if (document.hidden) activateBlurInstant();
     };
 
+    // === DRAG ===
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
       return false;
     };
 
-    // ============ MOBILE PROTECTION ============
+    // === COPY SHORTCUTS ===
+    const handleCopyShortcuts = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        const blockedKeys = ["c", "a", "u", "p", "s"];
+        if (blockedKeys.includes(e.key.toLowerCase())) {
+          const target = e.target as HTMLElement;
+          if (
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable
+          )
+            return;
+          e.preventDefault();
+        }
+      }
+    };
 
+    // === MULTI-TOUCH (3 jari) ===
     const handleTouchStartMulti = (e: TouchEvent) => {
-      if (e.touches.length >= 3) {
-        activateBlurInstant();
-      }
+      if (e.touches.length >= 3) activateBlurInstant();
     };
-
     const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length >= 3) {
-        activateBlurInstant();
-      }
+      if (e.touches.length >= 3) activateBlurInstant();
     };
 
-    // Deteksi window blur
+    // === COPY & SELECT ===
+    const handleCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      )
+        return;
+      e.preventDefault();
+      if (e.clipboardData)
+        e.clipboardData.setData(
+          "text/plain",
+          "Konten ini dilindungi. © Havia Studio",
+        );
+    };
+
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      )
+        return;
+      e.preventDefault();
+    };
+
     const handleWindowBlur = () => {
-      activateBlurInstant();
-    };
-
-    // Deteksi Resize (Hanya aktif jika LEBAR berubah, abaikan tinggi untuk URL bar HP)
-    const handleResize = () => {
-      const currentWidth = window.innerWidth;
-      if (currentWidth !== lastWidthRef.current) {
-        lastWidthRef.current = currentWidth;
-        activateBlurInstant();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        activateBlur();
       }
     };
 
-    // Register listeners
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("contextmenu", handleContextMenu as any);
     document.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("keydown", handleCopyShortcuts);
     window.addEventListener("blur", handleWindowBlur);
-    window.addEventListener("resize", handleResize);
-    
-    document.addEventListener("touchstart", handleTouchStartMulti, { passive: true });
+    document.addEventListener("touchstart", handleTouchStartMulti, {
+      passive: true,
+    });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("selectstart", handleSelectStart);
 
-    // Cleanup
     return () => {
       clearTimeout(readyTimeout);
       document.removeEventListener("keydown", handleKeyDown);
@@ -192,21 +210,19 @@ export default function ScreenshotProtection({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("contextmenu", handleContextMenu as any);
       document.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("keydown", handleCopyShortcuts);
       window.removeEventListener("blur", handleWindowBlur);
-      window.removeEventListener("resize", handleResize);
       document.removeEventListener("touchstart", handleTouchStartMulti);
       document.removeEventListener("touchmove", handleTouchMove);
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("selectstart", handleSelectStart);
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     };
   }, [activateBlur, activateBlurInstant]);
 
   return (
     <>
-      {/* Overlay */}
       <div
-        ref={overlayRef}
         id="ss-blur-overlay"
         className="screenshot-blur-overlay"
         aria-hidden="true"
