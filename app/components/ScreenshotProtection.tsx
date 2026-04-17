@@ -14,73 +14,56 @@ export default function ScreenshotProtection({
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isReadyRef = useRef(false);
   const keysPressed = useRef<Set<string>>(new Set());
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const activateBlurInstant = useCallback(() => {
-    if (!isReadyRef.current || !isComponentVisible) return;
+  const activateBlurInstant = useCallback(
+    (duration = 4000) => {
+      if (!isReadyRef.current || !isComponentVisible) return;
 
-    const content = contentRef.current;
-    const overlay = document.getElementById("ss-blur-overlay");
-    if (content) {
-      content.classList.add("blurred");
-    }
-    if (overlay) {
-      overlay.style.display = "flex";
-    }
+      const content = contentRef.current;
+      const overlay = document.getElementById("ss-blur-overlay");
+      if (content) content.classList.add("blurred");
+      if (overlay) overlay.style.display = "flex";
+      setIsBlurred(true);
 
-    setIsBlurred(true);
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = setTimeout(() => {
+        setIsBlurred(false);
+        if (content) content.classList.remove("blurred");
+        if (overlay) overlay.style.display = "none";
+      }, duration);
+    },
+    [isComponentVisible],
+  );
 
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-    }
-
-    blurTimeoutRef.current = setTimeout(() => {
-      setIsBlurred(false);
-      if (content) {
-        content.classList.remove("blurred");
-      }
-      if (overlay) {
-        overlay.style.display = "none";
-      }
-    }, 4000);
-  }, [isComponentVisible]);
-
-  const activateBlur = useCallback(() => {
-    if (!isReadyRef.current || !isComponentVisible) return;
-
-    setIsBlurred(true);
-
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-    }
-
-    blurTimeoutRef.current = setTimeout(() => {
-      setIsBlurred(false);
-    }, 3000);
-  }, [isComponentVisible]);
+  const activateBlur = useCallback(
+    (duration = 3000) => {
+      if (!isReadyRef.current || !isComponentVisible) return;
+      setIsBlurred(true);
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = setTimeout(() => setIsBlurred(false), duration);
+    },
+    [isComponentVisible],
+  );
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
+  // Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsComponentVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 } 
+      ([entry]) => setIsComponentVisible(entry.isIntersecting),
+      { threshold: 0.1 },
     );
-
-    if (contentRef.current) {
-      observer.observe(contentRef.current);
-    }
-
+    if (contentRef.current) observer.observe(contentRef.current);
     return () => {
-      if (contentRef.current) {
-        observer.unobserve(contentRef.current);
-      }
+      if (contentRef.current) observer.unobserve(contentRef.current);
     };
   }, []);
 
@@ -89,22 +72,22 @@ export default function ScreenshotProtection({
       isReadyRef.current = true;
     }, 2000);
 
+    // === KEYBOARD EVENTS ===
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressed.current.add(e.key.toLowerCase());
 
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const isCmdPressed = e.metaKey;
-      const isShiftPressed = e.shiftKey;
-
-      if (isCmdPressed && isShiftPressed) {
+      if (e.metaKey && e.shiftKey) {
         activateBlur();
-        try { navigator.clipboard.writeText(""); } catch {}
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
       }
-
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
         activateBlur();
-        try { navigator.clipboard.writeText(""); } catch {}
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
         return;
       }
       if (e.metaKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
@@ -122,16 +105,6 @@ export default function ScreenshotProtection({
         activateBlur();
         return;
       }
-      if (e.ctrlKey && (e.key === "PrintScreen" || e.code === "PrintScreen")) {
-        e.preventDefault();
-        activateBlur();
-        return;
-      }
-      if (e.altKey && (e.key === "PrintScreen" || e.code === "PrintScreen")) {
-        e.preventDefault();
-        activateBlur();
-        return;
-      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -139,21 +112,24 @@ export default function ScreenshotProtection({
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
         activateBlur();
-        try { navigator.clipboard.writeText(""); } catch {}
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
       }
     };
 
+    // === VISIBILITY ===
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        activateBlurInstant();
-      }
+      if (document.hidden) activateBlurInstant();
     };
 
+    // === DRAG ===
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
       return false;
     };
 
+    // === COPY SHORTCUTS ===
     const handleCopyShortcuts = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         const blockedKeys = ["c", "a", "u", "p", "s"];
@@ -163,42 +139,36 @@ export default function ScreenshotProtection({
             target.tagName === "INPUT" ||
             target.tagName === "TEXTAREA" ||
             target.isContentEditable
-          ) {
+          )
             return;
-          }
           e.preventDefault();
         }
       }
     };
 
+    // === MULTI-TOUCH (3 jari) ===
     const handleTouchStartMulti = (e: TouchEvent) => {
-      if (e.touches.length >= 3) {
-        activateBlurInstant();
-      }
+      if (e.touches.length >= 3) activateBlurInstant();
     };
-
     const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length >= 3) {
-        activateBlurInstant();
-      }
+      if (e.touches.length >= 3) activateBlurInstant();
     };
 
+    // === COPY & SELECT ===
     const handleCopy = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.isContentEditable
-      ) {
+      )
         return;
-      }
       e.preventDefault();
-      if (e.clipboardData) {
+      if (e.clipboardData)
         e.clipboardData.setData(
           "text/plain",
-          "Konten ini dilindungi. © Havia Studio"
+          "Konten ini dilindungi. © Havia Studio",
         );
-      }
     };
 
     const handleSelectStart = (e: Event) => {
@@ -207,17 +177,14 @@ export default function ScreenshotProtection({
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.isContentEditable
-      ) {
+      )
         return;
-      }
       e.preventDefault();
     };
 
     const handleWindowBlur = () => {
-      const isMobile = window.innerWidth <= 1024;
-      if (isMobile) {
-        activateBlurInstant();
-      } else {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
         activateBlur();
       }
     };
@@ -229,8 +196,9 @@ export default function ScreenshotProtection({
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("keydown", handleCopyShortcuts);
     window.addEventListener("blur", handleWindowBlur);
-    window.addEventListener("resize", handleWindowBlur);
-    document.addEventListener("touchstart", handleTouchStartMulti, { passive: true });
+    document.addEventListener("touchstart", handleTouchStartMulti, {
+      passive: true,
+    });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
     document.addEventListener("copy", handleCopy);
     document.addEventListener("selectstart", handleSelectStart);
@@ -244,20 +212,16 @@ export default function ScreenshotProtection({
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("keydown", handleCopyShortcuts);
       window.removeEventListener("blur", handleWindowBlur);
-      window.removeEventListener("resize", handleWindowBlur);
       document.removeEventListener("touchstart", handleTouchStartMulti);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("copy", handleCopy);
       document.removeEventListener("selectstart", handleSelectStart);
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     };
   }, [activateBlur, activateBlurInstant]);
 
   return (
     <>
-      {/* Overlay */}
       <div
         id="ss-blur-overlay"
         className="screenshot-blur-overlay"
