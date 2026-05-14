@@ -22,7 +22,7 @@ export default function ScreenshotProtection({
 
   const activateBlurInstant = useCallback(
     (duration = 4000) => {
-      if (!isReadyRef.current || !isComponentVisible) return;
+      if (!isReadyRef.current) return;
 
       const content = contentRef.current;
       const overlay = document.getElementById("ss-blur-overlay");
@@ -42,7 +42,7 @@ export default function ScreenshotProtection({
 
   const activateBlur = useCallback(
     (duration = 3000) => {
-      if (!isReadyRef.current || !isComponentVisible) return;
+      if (!isReadyRef.current) return;
       setIsBlurred(true);
       if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = setTimeout(() => setIsBlurred(false), duration);
@@ -55,54 +55,47 @@ export default function ScreenshotProtection({
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
-  // Intersection Observer
+  // Intersection Observer removed to allow global protection
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsComponentVisible(entry.isIntersecting),
-      { threshold: 0.1 },
-    );
-    if (contentRef.current) observer.observe(contentRef.current);
-    return () => {
-      if (contentRef.current) observer.unobserve(contentRef.current);
-    };
+    setIsComponentVisible(true);
   }, []);
 
   useEffect(() => {
     const readyTimeout = setTimeout(() => {
       isReadyRef.current = true;
-    }, 2000);
+    }, 500);
 
     // === KEYBOARD EVENTS ===
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressed.current.add(e.key.toLowerCase());
 
+      // Mac Detection: Cmd + Shift
       if (e.metaKey && e.shiftKey) {
-        activateBlur();
+        activateBlurInstant();
         try {
           navigator.clipboard.writeText("");
         } catch {}
       }
-      if (e.key === "PrintScreen" || e.code === "PrintScreen") {
-        e.preventDefault();
-        activateBlur();
-        try {
-          navigator.clipboard.writeText("");
-        } catch {}
-        return;
-      }
-      if (e.metaKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
-        e.preventDefault();
-        activateBlur();
-        return;
-      }
-      if (e.ctrlKey && e.shiftKey && (e.key === "s" || e.key === "S")) {
-        e.preventDefault();
-        activateBlur();
-        return;
-      }
+
+      // Specific Mac shortcuts: Cmd+Shift+3, 4, 5
       if (e.metaKey && e.shiftKey && ["3", "4", "5", "6"].includes(e.key)) {
         e.preventDefault();
-        activateBlur();
+        activateBlurInstant(6000); // Longer blur for Mac
+        return;
+      }
+
+      if (e.key === "PrintScreen" || e.code === "PrintScreen") {
+        e.preventDefault();
+        activateBlurInstant();
+        try {
+          navigator.clipboard.writeText("");
+        } catch {}
+        return;
+      }
+      
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        activateBlurInstant();
         return;
       }
     };
@@ -111,10 +104,7 @@ export default function ScreenshotProtection({
       keysPressed.current.delete(e.key.toLowerCase());
       if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
-        activateBlur();
-        try {
-          navigator.clipboard.writeText("");
-        } catch {}
+        activateBlurInstant();
       }
     };
 
@@ -185,7 +175,14 @@ export default function ScreenshotProtection({
     const handleWindowBlur = () => {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (!isMobile) {
-        activateBlur();
+        activateBlurInstant(5000);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile && keysPressed.current.has("meta") && keysPressed.current.has("shift")) {
+        activateBlurInstant(6000);
       }
     };
 
@@ -196,6 +193,7 @@ export default function ScreenshotProtection({
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("keydown", handleCopyShortcuts);
     window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("mouseleave", handleMouseLeave);
     document.addEventListener("touchstart", handleTouchStartMulti, {
       passive: true,
     });
@@ -212,6 +210,7 @@ export default function ScreenshotProtection({
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("keydown", handleCopyShortcuts);
       window.removeEventListener("blur", handleWindowBlur);
+      document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("touchstart", handleTouchStartMulti);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("copy", handleCopy);
