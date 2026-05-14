@@ -19,17 +19,17 @@ export default async function Home() {
 
   return (
     <SplashScreen>
-      <Header cmsData={cmsData} />
-      <Hero cmsData={cmsData} />
       <ScreenshotProtection>
+        <Header cmsData={cmsData} />
+        <Hero cmsData={cmsData} />
         <Portfolio cmsData={cmsData} />
+        <About cmsData={cmsData} />
+        <People cmsData={cmsData} />
+        <RequestPortfolio cmsData={cmsData} />
+        <Trust cmsData={cmsData} />
+        <ContactSection cmsData={cmsData} />
+        <WhatsappCTA cmsData={cmsData} />
       </ScreenshotProtection>
-      <About cmsData={cmsData} />
-      <People cmsData={cmsData} />
-      <RequestPortfolio cmsData={cmsData} />
-      <Trust cmsData={cmsData} />
-      <ContactSection cmsData={cmsData} />
-      <WhatsappCTA cmsData={cmsData} />
     </SplashScreen>
   );
 }
